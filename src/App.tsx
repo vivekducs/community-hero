@@ -13,6 +13,7 @@ import IssueDetail from './views/IssueDetail';
 import Dashboard from './views/Dashboard';
 import Profile from './views/Profile';
 import Admin from './views/Admin';
+import Leaderboard from './views/Leaderboard';
 
 export default function App() {
   return (
@@ -68,6 +69,16 @@ export default function App() {
               <ProtectedRoute>
                 <Layout>
                   <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/leaderboard" 
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Leaderboard />
                 </Layout>
               </ProtectedRoute>
             } 

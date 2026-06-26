@@ -2,7 +2,7 @@
   "entities": {
     "UserProfile": {
       "title": "UserProfile",
-      "description": "User profile document containing credibility score and authority privileges",
+      "description": "User profile document containing credibility score, authority privileges, gamification points, and tier metrics",
       "type": "object",
       "properties": {
         "user_id": { "type": "string" },
@@ -15,6 +15,9 @@
         "total_issues_reported": { "type": "integer" },
         "badges_earned": { "type": "array" },
         "is_authority": { "type": "boolean" },
+        "department_id": { "type": "string" },
+        "total_points": { "type": "integer" },
+        "tier": { "type": "string", "enum": ["New", "Active", "Trusted"] },
         "created_at": { "type": "string" }
       },
       "required": ["user_id", "email", "name", "credibility_score", "total_issues_reported", "badges_earned", "created_at"]
@@ -59,6 +62,44 @@
         "created_at": { "type": "string" }
       },
       "required": ["verification_id", "issue_id", "user_id", "status", "created_at"]
+    },
+    "Badge": {
+      "title": "Badge",
+      "description": "Gamified badge earned by citizens",
+      "type": "object",
+      "properties": {
+        "badge_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "badge_type": { "type": "string" },
+        "earned_at": { "type": "string" },
+        "issue_id": { "type": "string" }
+      },
+      "required": ["badge_id", "user_id", "badge_type", "earned_at"]
+    },
+    "Leaderboard": {
+      "title": "Leaderboard",
+      "description": "Pre-calculated monthly rankings",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "period": { "type": "string" },
+        "entries": { "type": "array" },
+        "last_updated": { "type": "string" }
+      },
+      "required": ["type", "period", "entries", "last_updated"]
+    },
+    "AdminNote": {
+      "title": "AdminNote",
+      "description": "Internal municipal progress updates, visible to authorities only",
+      "type": "object",
+      "properties": {
+        "note_id": { "type": "string" },
+        "issue_id": { "type": "string" },
+        "author_id": { "type": "string" },
+        "text": { "type": "string" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["note_id", "issue_id", "author_id", "text", "created_at"]
     }
   },
   "firestore": {
@@ -73,6 +114,18 @@
     "verifications/{verificationId}": {
       "schema": { "$ref": "#/entities/Verification" },
       "description": "Civic issue verifications collection"
+    },
+    "badges/{badgeId}": {
+      "schema": { "$ref": "#/entities/Badge" },
+      "description": "Earned badges collection"
+    },
+    "leaderboards/{leaderboardId}": {
+      "schema": { "$ref": "#/entities/Leaderboard" },
+      "description": "Leaderboard snapshots collection"
+    },
+    "admin_notes/{noteId}": {
+      "schema": { "$ref": "#/entities/AdminNote" },
+      "description": "Internal municipal authority notes collection"
     }
   }
 }

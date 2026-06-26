@@ -13,7 +13,8 @@ import {
   X, 
   Search, 
   Bell, 
-  PlusCircle 
+  PlusCircle,
+  Trophy
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -34,6 +35,7 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Report Issue', path: '/report', icon: PlusCircle },
     { name: 'Live Map & Issues', path: '/issues', icon: Map },
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
     { name: 'Profile', path: '/profile', icon: User },
   ];
 

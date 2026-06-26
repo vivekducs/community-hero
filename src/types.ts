@@ -14,6 +14,9 @@ export interface UserProfile {
   total_issues_reported: number;
   badges_earned: string[];
   is_authority?: boolean;
+  department_id?: string;
+  total_points?: number;
+  tier?: string;
   created_at: string;
 }
 
@@ -22,6 +25,7 @@ export interface Issue {
   title: string;
   description: string;
   image_urls: string[];
+  before_after_photos?: string[];
   location: LatLng;
   category: string;
   subcategory: string;
@@ -30,6 +34,8 @@ export interface Issue {
   status: 'reported' | 'verifying' | 'verified' | 'investigating' | 'resolving' | 'resolved' | 'dismissed';
   department: string;
   assigned_to_person?: string;
+  assigned_at?: string;
+  resolved_at?: string;
   created_by: string;
   created_by_name?: string;
   upvotes: number;
