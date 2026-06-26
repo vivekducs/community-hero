@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile document containing credibility score and authority privileges",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "location": { "type": "object" },
+        "zone": { "type": "string" },
+        "credibility_score": { "type": "integer" },
+        "total_issues_reported": { "type": "integer" },
+        "badges_earned": { "type": "array" },
+        "is_authority": { "type": "boolean" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["user_id", "email", "name", "credibility_score", "total_issues_reported", "badges_earned", "created_at"]
+    },
+    "Issue": {
+      "title": "Issue",
+      "description": "Civic issue submitted by citizen sentinel",
+      "type": "object",
+      "properties": {
+        "issue_id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "image_urls": { "type": "array" },
+        "location": { "type": "object" },
+        "category": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "confidence": { "type": "number" },
+        "status": { "type": "string", "enum": ["reported", "verifying", "verified", "investigating", "resolving", "resolved", "dismissed"] },
+        "department": { "type": "string" },
+        "assigned_to_person": { "type": "string" },
+        "created_by": { "type": "string" },
+        "created_by_name": { "type": "string" },
+        "upvotes": { "type": "integer" },
+        "downvotes": { "type": "integer" },
+        "verification_percentage": { "type": "number" },
+        "escalation_level": { "type": "integer" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["issue_id", "title", "description", "image_urls", "location", "category", "subcategory", "severity", "confidence", "status", "department", "created_by", "upvotes", "downvotes", "verification_percentage", "escalation_level", "created_at"]
+    },
+    "Verification": {
+      "title": "Verification",
+      "description": "Citizen confirmation or rejection vote on an issue",
+      "type": "object",
+      "properties": {
+        "verification_id": { "type": "string" },
+        "issue_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["confirm", "reject"] },
+        "comments": { "type": "string" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["verification_id", "issue_id", "user_id", "status", "created_at"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User accounts collection"
+    },
+    "issues/{issueId}": {
+      "schema": { "$ref": "#/entities/Issue" },
+      "description": "Civic issues collection"
+    },
+    "verifications/{verificationId}": {
+      "schema": { "$ref": "#/entities/Verification" },
+      "description": "Civic issue verifications collection"
+    }
+  }
+}
