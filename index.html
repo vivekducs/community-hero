@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Community Hero - Hyperlocal Problem Solver</title>
+    <script>
+      // Polyfill to prevent "Cannot set property fetch of #<Window> which has only a getter"
+      try {
+        if (typeof window !== 'undefined' && window.fetch) {
+          var originalFetch = window.fetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() { return originalFetch; },
+            set: function(val) { console.warn('Ignored setting window.fetch'); },
+            configurable: true
+          });
+        }
+      } catch (e) {
+        console.error('Fetch polyfill error:', e);
+      }
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#4f46e5" />
     <!-- Leaflet CSS for mapping -->
