@@ -6,7 +6,7 @@ import { AlertTriangle, Mail, Lock, User, Loader2, ArrowRight } from 'lucide-rea
 import { motion } from 'motion/react';
 
 export default function Signup() {
-  const { signup } = useAuth();
+  const { signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -170,6 +170,31 @@ export default function Signup() {
           <span className="flex-shrink mx-4 text-xs font-medium text-slate-400 uppercase">Or</span>
           <div className="flex-grow border-t border-slate-100"></div>
         </div>
+
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              setSubmitting(true);
+              setServerError(null);
+              await loginWithGoogle();
+              navigate('/');
+            } catch (err: any) {
+              setServerError(err.message || 'Failed to sign in with Google.');
+              setSubmitting(false);
+            }
+          }}
+          disabled={submitting}
+          className="w-full h-11 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-150 shadow-sm"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.66 15.63 16.88 16.81 15.69 17.61V20.35H19.26C21.35 18.42 22.56 15.6 22.56 12.25Z" fill="#4285F4"/>
+            <path d="M12 23C14.97 23 17.46 22.02 19.26 20.35L15.69 17.61C14.71 18.27 13.46 18.66 12 18.66C9.18 18.66 6.78 16.76 5.86 14.22H2.18V17.07C4.01 20.7 7.72 23 12 23Z" fill="#34A853"/>
+            <path d="M5.86 14.22C5.63 13.52 5.5 12.78 5.5 12C5.5 11.22 5.63 10.48 5.86 9.78V6.93H2.18C1.42 8.44 1 10.17 1 12C1 13.83 1.42 15.56 2.18 17.07L5.86 14.22Z" fill="#FBBC05"/>
+            <path d="M12 5.34C13.62 5.34 15.06 5.9 16.21 6.99L19.34 3.86C17.46 2.11 14.97 1 12 1C7.72 1 4.01 3.3 2.18 6.93L5.86 9.78C6.78 7.24 9.18 5.34 12 5.34Z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
 
         {/* Toggle sign up */}
         <p className="text-center text-sm text-slate-500">

@@ -4,7 +4,9 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
@@ -17,6 +19,7 @@ interface AuthContextType {
   error: string | null;
   signup: (email: string, password: string, name: string) => Promise<UserProfile>;
   login: (email: string, password: string) => Promise<UserProfile>;
+  loginWithGoogle: () => Promise<UserProfile>;
   logout: () => Promise<void>;
 }
 
@@ -161,6 +164,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async (): Promise<UserProfile> => {
+    setLoadingState(true);
+    setLoading(true);
+    setErrorState(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const firebaseUser = userCredential.user;
+
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      let profile: UserProfile;
+      if (userDocSnap.exists()) {
+        profile = userDocSnap.data() as UserProfile;
+      } else {
+        profile = {
+          user_id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          name: firebaseUser.displayName || 'User',
+          credibility_score: 100,
+          total_issues_reported: 0,
+          badges_earned: [],
+          is_authority: firebaseUser.email === 'vip901it@gmail.com' || firebaseUser.email?.endsWith('.gov') || false,
+          created_at: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'users', firebaseUser.uid), profile);
+      }
+
+      setUserState(profile);
+      setUser(profile);
+      setLoadingState(false);
+      setLoading(false);
+      return profile;
+    } catch (err: any) {
+      setErrorState(err.message || 'Failed to log in with Google');
+      setLoadingState(false);
+      setLoading(false);
+      throw err;
+    }
+  };
+
   const logout = async () => {
     setLoadingState(true);
     setLoading(true);
@@ -179,7 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signup, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, signup, login, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
