@@ -21,7 +21,9 @@ import {
   CheckCircle,
   Upload,
   RefreshCw,
-  WifiOff
+  WifiOff,
+  XCircle,
+  EyeOff
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast, Toaster } from 'react-hot-toast';
@@ -118,8 +120,7 @@ export default function Report() {
   const [gpsLoading, setGpsLoading] = useState(false);
   
   // Image handling options
-  const [imageOption, setImageOption] = useState<'preset' | 'upload' | 'camera'>('preset');
-  const [selectedPreset, setSelectedPreset] = useState(IMAGE_PRESETS[0].url);
+  const [imageOption, setImageOption] = useState<'upload' | 'camera'>('upload');
   
   // Independent state variables for device uploads and camera captures
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -169,6 +170,24 @@ export default function Report() {
     severity: 'medium',
     confidence: 0,
     loading: false
+  });
+
+  const [imageAnalysis, setImageAnalysis] = useState<{
+    loading: boolean;
+    analyzed: boolean;
+    isValid: boolean;
+    isClear: boolean;
+    issueVisible: boolean;
+    feedback: string;
+    flaggedStatus: 'none' | 'clean_no_issue' | 'irrelevant_home_image' | 'blurry';
+  }>({
+    loading: false,
+    analyzed: false,
+    isValid: true,
+    isClear: true,
+    issueVisible: true,
+    feedback: '',
+    flaggedStatus: 'none'
   });
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -290,7 +309,7 @@ export default function Report() {
     return null;
   }
 
-  // Text-based AI classification trigger
+  // Text & Image AI Analysis trigger
   const handleAiAnalysis = async () => {
     if (!watchedTitle || watchedTitle.length < 10) {
       toast.error("Please enter a title (minimum 10 chars) first for AI Analysis!");
@@ -298,12 +317,28 @@ export default function Report() {
     }
 
     setAiSuggestions(prev => ({ ...prev, loading: true }));
+    setImageAnalysis(prev => ({ ...prev, loading: true, analyzed: false }));
 
     try {
+      let base64Image: string | undefined = undefined;
+      const fileToAnalyze = imageOption === 'upload' ? uploadedFile : (imageOption === 'camera' ? capturedFile : null);
+      if (fileToAnalyze) {
+        base64Image = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (e) => reject(e);
+          reader.readAsDataURL(fileToAnalyze);
+        });
+      }
+
       const response = await apiFetch('/api/gemini/insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: watchedTitle, description: watchedDescription || "No detailed description provided." })
+        body: JSON.stringify({ 
+          title: watchedTitle, 
+          description: watchedDescription || "No detailed description provided.",
+          image: base64Image
+        })
       });
 
       if (response.ok) {
@@ -317,6 +352,28 @@ export default function Report() {
           loading: false
         });
 
+        if (data.image_flagged_status !== undefined) {
+          setImageAnalysis({
+            loading: false,
+            analyzed: true,
+            isValid: data.image_flagged_status === 'none',
+            isClear: data.image_clear !== undefined ? data.image_clear : true,
+            issueVisible: data.issue_visible !== undefined ? data.issue_visible : true,
+            feedback: data.image_feedback || '',
+            flaggedStatus: data.image_flagged_status
+          });
+        } else {
+          setImageAnalysis({
+            loading: false,
+            analyzed: false,
+            isValid: true,
+            isClear: true,
+            issueVisible: true,
+            feedback: '',
+            flaggedStatus: 'none'
+          });
+        }
+
         // Autofill form
         setValue('category', data.category);
         setValue('subcategory', data.subcategory);
@@ -328,6 +385,15 @@ export default function Report() {
     } catch (err) {
       console.error(err);
       toast.error("AI Insights server busy. Fallback prediction applied.");
+      setImageAnalysis({
+        loading: false,
+        analyzed: false,
+        isValid: true,
+        isClear: true,
+        issueVisible: true,
+        feedback: '',
+        flaggedStatus: 'none'
+      });
       
       // Local fallback parser
       const text = (watchedTitle + ' ' + watchedDescription).toLowerCase();
@@ -506,22 +572,20 @@ export default function Report() {
     setUploadProgress(0);
 
     const issue_id = 'issue_' + Math.random().toString(36).substr(2, 9);
-    let finalImageUrl = selectedPreset;
+    let finalImageUrl = '';
 
     try {
       // 1. Upload custom image if chosen
       const fileToUpload = imageOption === 'upload' ? uploadedFile : (imageOption === 'camera' ? capturedFile : null);
       
-      if (imageOption !== 'preset') {
-        if (!fileToUpload) {
-          toast.error(imageOption === 'upload' ? "Please select an image file to upload." : "Please capture a photo using your camera.");
-          setIsSubmitting(false);
-          return;
-        }
-        toast.loading("Uploading proof image to Cloud Storage...", { id: 'upload-toast' });
-        finalImageUrl = await uploadToStorage(fileToUpload, issue_id);
-        toast.success("Image uploaded successfully!", { id: 'upload-toast' });
+      if (!fileToUpload) {
+        toast.error(imageOption === 'upload' ? "Please select an image file to upload." : "Please capture a photo using your camera.");
+        setIsSubmitting(false);
+        return;
       }
+      toast.loading("Uploading proof image to Cloud Storage...", { id: 'upload-toast' });
+      finalImageUrl = await uploadToStorage(fileToUpload, issue_id);
+      toast.success("Image uploaded successfully!", { id: 'upload-toast' });
 
       const departmentName = CIVIC_CATEGORIES.find(c => c.name === data.category)?.department || 'General Administration';
 
@@ -565,6 +629,15 @@ export default function Report() {
       
       // Update local Zustand store
       addIssue(createdIssue as Issue);
+
+      if (createdIssue.status === 'auto_discarded') {
+        toast.error(`Auto-Filtered: ${createdIssue.image_feedback || 'Irrelevant photo detected.'}`, { duration: 8000 });
+        toast("Your report was auto-discarded because the photo was verified as invalid (such as an indoor home or clean surface). Report it again with a correct photo.", { icon: '⚠️', duration: 8000 });
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 5000);
+        return;
+      }
 
       // Trigger success notifications and redirect
       toast.success("Issue reported! Redispatching local sentinel...", { duration: 3000 });
@@ -745,7 +818,6 @@ export default function Report() {
               
               <div className="flex gap-4 border-b border-slate-150 pb-2">
                 {[
-                  { value: 'preset', label: 'Pick Preset', icon: ImageIcon },
                   { value: 'upload', label: 'Device Upload', icon: Upload },
                   { value: 'camera', label: 'Camera Capture', icon: Camera }
                 ].map(opt => {
@@ -765,26 +837,6 @@ export default function Report() {
                   );
                 })}
               </div>
-
-              {imageOption === 'preset' && (
-                <div className="grid grid-cols-4 gap-3">
-                  {IMAGE_PRESETS.map((preset) => (
-                    <button
-                      key={preset.url}
-                      type="button"
-                      onClick={() => setSelectedPreset(preset.url)}
-                      className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all ${
-                        selectedPreset === preset.url ? 'border-navy shadow-sm scale-95' : 'border-transparent opacity-60'
-                      }`}
-                    >
-                      <img src={preset.url} alt={preset.label} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                      <div className="absolute bottom-0 inset-x-0 bg-slate-900/60 p-1 text-[9px] text-white text-center font-medium font-mono">
-                        {preset.label}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
 
               {imageOption === 'upload' && (
                 <div 
@@ -854,6 +906,47 @@ export default function Report() {
                       <p className="text-[10px] text-slate-400 font-medium">Requires environment camera permission</p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* AI Image Verification Feedback Callouts */}
+              {imageAnalysis.loading && (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-2.5 text-xs text-slate-500">
+                  <Loader2 className="w-4 h-4 text-navy animate-spin shrink-0" />
+                  <span>AI is verifying the photo's clarity and content...</span>
+                </div>
+              )}
+
+              {imageAnalysis.analyzed && (
+                <div className={`p-4 rounded-xl border flex items-start gap-3 text-xs leading-relaxed ${
+                  imageAnalysis.flaggedStatus === 'none' 
+                    ? 'bg-emerald-50/50 border-emerald-200 text-emerald-800' 
+                    : imageAnalysis.flaggedStatus === 'clean_no_issue'
+                    ? 'bg-amber-50/50 border-amber-200 text-amber-800'
+                    : 'bg-rose-50/50 border-rose-200 text-rose-800'
+                }`}>
+                  {imageAnalysis.flaggedStatus === 'none' ? (
+                    <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : imageAnalysis.flaggedStatus === 'clean_no_issue' ? (
+                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  )}
+                  <div className="space-y-1">
+                    <p className="font-bold uppercase tracking-wider text-[10px]">
+                      {imageAnalysis.flaggedStatus === 'none' 
+                        ? 'AI Photo Verified: Valid' 
+                        : imageAnalysis.flaggedStatus === 'clean_no_issue'
+                        ? 'AI Photo Warning: No Issue Detected'
+                        : 'AI Photo Error: Irrelevant or Blurry'}
+                    </p>
+                    <p>{imageAnalysis.feedback || 'Photo analysis complete.'}</p>
+                    {imageAnalysis.flaggedStatus !== 'none' && (
+                      <p className="text-[10px] font-semibold opacity-80 mt-1">
+                        * Note: Reporting with invalid photos may cause your ticket to be automatically discarded first time.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

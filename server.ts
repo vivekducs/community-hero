@@ -183,7 +183,7 @@ async function bootstrap() {
 
   // POST /api/gemini/insights - AI Triage Analysis
   app.post('/api/gemini/insights', async (req, res) => {
-    const { title, description } = req.body;
+    const { title, description, image } = req.body;
     if (!title || !description) {
       return res.status(400).json({ error: 'Title and description are required' });
     }
@@ -192,6 +192,8 @@ async function bootstrap() {
     if (geminiKey && geminiKey !== 'MY_GEMINI_API_KEY') {
       try {
         const ai = new GoogleGenAI({ apiKey: geminiKey });
+        
+        const hasImage = !!image;
         const prompt = `
           Analyze this reported civic issue.
           Title: "${title}"
@@ -216,19 +218,41 @@ async function bootstrap() {
           - "Education" -> "Public Education Board"
 
           Estimate the severity level ("low", "medium", "high", "critical") and your percentage confidence (0-100).
+
+          ${hasImage ? `An image has been attached to this report. You MUST analyze this image and provide image verification fields:
+          1. "image_clear": Is the image clear and of high-enough quality? (boolean: true if it is clear, false if extremely blurry, dark, low-quality, or unreadable).
+          2. "issue_visible": Is the reported issue (e.g., pothole, garbage, leak, etc.) actually visible in this photo?
+             - IMPORTANT: If the reported category/subcategory is 'Pothole' or 'Roads' but the road in the photo is completely clean and smooth with NO potholes, set "issue_visible" to false.
+             - IMPORTANT: If the photo shows a private home interior, room, living room, bed, selfie, pet, or other completely irrelevant objects unrelated to public civic issues, set "issue_visible" to false.
+          3. "image_feedback": A helpful, friendly, polite explanation explaining what you detected in the image (e.g. "Pothole detected on the road surface" or "The road surface appears completely clean and smooth. No pothole was detected in the photo. Please upload a clear photo of the damage if it exists." or "This image seems to be a private home interior instead of a public civic issue. Please upload a photo of the reported problem.").
+          4. "image_flagged_status": One of: "none" (valid/relevant), "clean_no_issue" (clean road/no issue), "irrelevant_home_image" (house, home, selfie, irrelevant), "blurry" (too blurry).` : ''}
+
           Return ONLY a clean valid JSON block like this:
           {
             "category": "Roads",
             "subcategory": "Pothole",
             "department": "Department of Transportation",
             "severity": "medium",
-            "confidence": 95
+            "confidence": 95${hasImage ? `,
+            "image_clear": true,
+            "issue_visible": true,
+            "image_feedback": "Explain here...",
+            "image_flagged_status": "none"` : ''}
           }
         `;
 
+        const parts: any[] = [];
+        if (hasImage) {
+          const imagePart = await getImagePart(image);
+          if (imagePart) {
+            parts.push(imagePart);
+          }
+        }
+        parts.push({ text: prompt });
+
         const response = await ai.models.generateContent({
           model: 'gemini-3.5-flash',
-          contents: prompt
+          contents: { parts }
         });
 
         const textResponse = response.text || '';
@@ -370,24 +394,89 @@ async function bootstrap() {
     }
 
     try {
-      // AI Triage
+      // AI Triage & Verification
       let category = reqCategory || 'Roads';
       let subcategory = reqSubcategory || 'Pothole';
       let department = reqDepartment || 'Department of Transportation';
       let confidence = 85;
 
-      if (!reqCategory) {
-        const insightsResponse = await fetch(`http://localhost:${PORT}/api/gemini/insights`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, description: description || "No description provided" })
-        });
-        if (insightsResponse.ok) {
-          const data = await insightsResponse.json();
-          category = data.category || category;
-          subcategory = data.subcategory || subcategory;
-          department = data.department || department;
-          confidence = data.confidence || confidence;
+      let image_clear = true;
+      let issue_visible = true;
+      let image_feedback = '';
+      let image_flagged_status = 'none';
+      let status = 'reported';
+
+      // Always call the insights API if we don't have a category OR we have an image to verify!
+      if (!reqCategory || image_url) {
+        try {
+          const insightsResponse = await fetch(`http://localhost:${PORT}/api/gemini/insights`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              title, 
+              description: description || "No description provided",
+              image: image_url || undefined
+            })
+          });
+          if (insightsResponse.ok) {
+            const data = await insightsResponse.json();
+            if (!reqCategory) {
+              category = data.category || category;
+              subcategory = data.subcategory || subcategory;
+              department = data.department || department;
+              confidence = data.confidence || confidence;
+            }
+            if (image_url) {
+              image_clear = data.image_clear !== undefined ? data.image_clear : true;
+              issue_visible = data.issue_visible !== undefined ? data.issue_visible : true;
+              image_feedback = data.image_feedback || '';
+              image_flagged_status = data.image_flagged_status || 'none';
+            }
+          }
+        } catch (insightsErr) {
+          console.error("AI Insights check failed in /api/issues:", insightsErr);
+        }
+      }
+
+      // Check if image is flagged as invalid (blurry, irrelevant, clean road)
+      if (image_url && image_flagged_status !== 'none' && image_flagged_status !== 'valid') {
+        // Query for previously auto_discarded issues by this user OR near this location
+        const q = query(
+          collection(db, 'issues'),
+          where('created_by', '==', created_by || 'anonymous'),
+          where('status', '==', 'auto_discarded')
+        );
+        const querySnapshot = await getDocs(q);
+        let previousDiscardedFound = false;
+
+        for (const doc of querySnapshot.docs) {
+          const d = doc.data();
+          if (d.category === category) {
+            previousDiscardedFound = true;
+            break;
+          }
+          if (d.location && location) {
+            const dist = getCoordinatesDistanceMeters(
+              parseFloat(d.location.lat), 
+              parseFloat(d.location.lng), 
+              parseFloat(location.lat), 
+              parseFloat(location.lng)
+            );
+            if (dist <= 100) {
+              previousDiscardedFound = true;
+              break;
+            }
+          }
+        }
+
+        if (!previousDiscardedFound) {
+          // Discard this request the first time!
+          status = 'auto_discarded';
+          department = 'Discarded Alerts';
+        } else {
+          // "if again the same issue then it can be sent to the dept only"
+          // Meaning we do NOT discard it this time! It is allowed to proceed as active.
+          status = 'reported';
         }
       }
 
@@ -405,7 +494,7 @@ async function bootstrap() {
         subcategory,
         severity: severity || 'medium',
         confidence,
-        status: 'reported',
+        status,
         department,
         created_by: created_by || 'anonymous',
         created_by_name: created_by_name || 'Citizen Sentinel',
@@ -413,6 +502,8 @@ async function bootstrap() {
         downvotes: 0,
         verification_percentage: 100,
         escalation_level: 1,
+        image_feedback,
+        image_flagged_status,
         created_at: new Date().toISOString()
       };
 
@@ -420,27 +511,40 @@ async function bootstrap() {
 
       // Add initial submission notification
       const initialNotifId = 'notif_' + Math.random().toString(36).substr(2, 9);
-      await setDoc(doc(db, 'notifications', initialNotifId), {
-        notification_id: initialNotifId,
-        issue_id: issue_id,
-        user_id: created_by || 'anonymous',
-        message: `Your reported issue "${title}" has been successfully logged and submitted.`,
-        is_read: false,
-        created_at: new Date().toISOString()
-      });
-
-      // Trigger Autonomous Ingestion & Dispatch Agent (Agent 1)
-      try {
-        await handleAgentIngestion(issue_id);
-      } catch (ingestErr) {
-        console.error("Auto-ingestion agent failed:", ingestErr);
+      if (status === 'auto_discarded') {
+        await setDoc(doc(db, 'notifications', initialNotifId), {
+          notification_id: initialNotifId,
+          issue_id: issue_id,
+          user_id: created_by || 'anonymous',
+          message: `⚠️ Alert: Your report "${title}" was automatically filtered/discarded because our AI model detected that the attached photo is invalid (${image_feedback || 'unclear/irrelevant'}). Please report it again with a clear photo showing the actual problem.`,
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+      } else {
+        await setDoc(doc(db, 'notifications', initialNotifId), {
+          notification_id: initialNotifId,
+          issue_id: issue_id,
+          user_id: created_by || 'anonymous',
+          message: `Your reported issue "${title}" has been successfully logged and submitted.`,
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
       }
 
-      // Trigger Autonomous Duplicate Detection Agent (Agent 2)
-      try {
-        await handleAgentDuplicateDetection(issue_id);
-      } catch (dupErr) {
-        console.error("Auto-duplicate detection agent failed:", dupErr);
+      // Trigger Autonomous Ingestion & Dispatch Agent (Agent 1) if not discarded
+      if (status !== 'auto_discarded') {
+        try {
+          await handleAgentIngestion(issue_id);
+        } catch (ingestErr) {
+          console.error("Auto-ingestion agent failed:", ingestErr);
+        }
+
+        // Trigger Autonomous Duplicate Detection Agent (Agent 2)
+        try {
+          await handleAgentDuplicateDetection(issue_id);
+        } catch (dupErr) {
+          console.error("Auto-duplicate detection agent failed:", dupErr);
+        }
       }
 
       // Retrieve final fully-processed issue document

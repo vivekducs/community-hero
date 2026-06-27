@@ -60,12 +60,6 @@ interface Issue {
   assigned_to?: string;
 }
 
-const reopenSamplePhotos = [
-  { name: 'Issue Still Unresolved', url: 'https://images.unsplash.com/photo-1599740831146-80a6b7cd905e?auto=format&fit=crop&q=80&w=800' },
-  { name: 'Poor Quality Repair', url: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800' },
-  { name: 'Recurring Problem', url: 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&q=80&w=800' },
-];
-
 export default function IssueDetail() {
   const { issueId } = useParams<{ issueId: string }>();
   const { user } = useAuth();
@@ -658,25 +652,6 @@ export default function IssueDetail() {
                         >
                           <Camera className="w-4 h-4 text-slate-500" /> Upload Custom Photo
                         </label>
-                      </div>
-
-                      <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wider text-center">— Or select simulated evidence preset —</div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        {reopenSamplePhotos.map((p, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => {
-                              setReopenImage(p.url);
-                              toast.success(`Selected proof preset: ${p.name}`);
-                            }}
-                            className="p-2 bg-white border border-slate-200 rounded-xl text-xs hover:border-amber-500 hover:bg-amber-50/30 transition-all text-slate-700 font-medium text-left truncate flex items-center gap-2 shadow-sm"
-                          >
-                            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-                            <span className="truncate">{p.name}</span>
-                          </button>
-                        ))}
                       </div>
                     </div>
                   )}

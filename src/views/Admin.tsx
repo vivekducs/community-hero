@@ -91,12 +91,6 @@ export default function Admin() {
     { name: 'Sanitation Cleared', url: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=800' },
   ];
 
-  const reopenSamplePhotos = [
-    { name: 'Issue Still Unresolved', url: 'https://images.unsplash.com/photo-1599740831146-80a6b7cd905e?auto=format&fit=crop&q=80&w=800' },
-    { name: 'Poor Quality Repair', url: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800' },
-    { name: 'Recurring Problem', url: 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&q=80&w=800' },
-  ];
-
   // 1. Live listener for issues from Firestore
   useEffect(() => {
     const unsubIssues = onSnapshot(collection(db, 'issues'), (snapshot) => {
@@ -1256,25 +1250,6 @@ export default function Admin() {
                                   >
                                     <Camera className="w-3.5 h-3.5 text-slate-500" /> Upload Custom Photo
                                   </label>
-                                </div>
-
-                                <div className="text-[9px] text-slate-400 font-medium uppercase tracking-wider text-center">— OR CHOOSE PRESET —</div>
-
-                                <div className="grid grid-cols-3 gap-1">
-                                  {reopenSamplePhotos.map((p, i) => (
-                                    <button
-                                      key={i}
-                                      type="button"
-                                      onClick={() => {
-                                        setReopenImage(p.url);
-                                        toast.success(`Preset selected: ${p.name}`);
-                                      }}
-                                      className="p-1 bg-white border border-slate-200 rounded-lg text-[9px] hover:border-amber-500 transition-all text-slate-700 font-bold truncate block"
-                                      title={p.name}
-                                    >
-                                      {p.name.split(' ')[0]}
-                                    </button>
-                                  ))}
                                 </div>
                               </div>
                             )}
