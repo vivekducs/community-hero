@@ -1,0 +1,6 @@
+{
+  "firestore": {
+    "database": "ai-studio-citymind-825e5b72-a31a-4304-83b7-64e929b5fded",
+    "rules": "firestore.rules"
+  }
+}
