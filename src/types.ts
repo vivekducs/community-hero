@@ -16,6 +16,7 @@ export interface UserProfile {
   is_authority?: boolean;
   department_id?: string;
   total_points?: number;
+  community_hero_points?: number;
   tier?: string;
   created_at: string;
 }

@@ -174,7 +174,7 @@ export default function Admin() {
             This portal is reserved exclusively for registered municipal authority accounts, emergency responders, and verified public administrators. If you represent a city department, please contact the CityMind administrator.
           </p>
           <div className="pt-2">
-            <Link to="/" className="inline-flex h-11 items-center justify-center px-6 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all duration-150 shadow-md">
+            <Link to="/" className="inline-flex h-11 items-center justify-center px-6 bg-navy hover:bg-navy-hover active:bg-slate-900 text-white font-bold text-xs rounded-xl transition-all duration-150 shadow-md">
               Return to Citizen Portal
             </Link>
           </div>
@@ -419,21 +419,21 @@ export default function Admin() {
       case 'medium':
         return <span className="px-2.5 py-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-100 rounded-lg uppercase tracking-wider">Medium</span>;
       default:
-        return <span className="px-2.5 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg uppercase tracking-wider">Low</span>;
+        return <span className="px-2.5 py-1 text-[10px] font-bold text-navy bg-navy/10 border border-navy/20 rounded-lg uppercase tracking-wider">Low</span>;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'resolved':
-        return <span className="px-3 py-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full uppercase tracking-wider">Resolved</span>;
+        return <span className="px-3 py-1 text-[10px] font-extrabold text-[#138808] bg-[#138808]/10 border border-[#138808]/20 rounded-full uppercase tracking-wider">Resolved</span>;
       case 'resolving':
-        return <span className="px-3 py-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-100 rounded-full uppercase tracking-wider">Resolving</span>;
+        return <span className="px-3 py-1 text-[10px] font-extrabold text-[#FF9933] bg-[#FF9933]/10 border border-[#FF9933]/20 rounded-full uppercase tracking-wider">Resolving</span>;
       case 'investigating':
         return <span className="px-3 py-1 text-[10px] font-extrabold text-blue-700 bg-blue-50 border border-blue-100 rounded-full uppercase tracking-wider">Investigating</span>;
       case 'Assigned':
       case 'assigned':
-        return <span className="px-3 py-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full uppercase tracking-wider">Assigned</span>;
+        return <span className="px-3 py-1 text-[10px] font-extrabold text-navy bg-navy/10 border border-navy/20 rounded-full uppercase tracking-wider">Assigned</span>;
       default:
         return <span className="px-3 py-1 text-[10px] font-extrabold text-slate-700 bg-slate-100 border border-slate-200 rounded-full uppercase tracking-wider">Reported</span>;
     }
@@ -445,7 +445,7 @@ export default function Admin() {
       {/* 1. Header with metadata details */}
       <section className="flex flex-col md:flex-row justify-between md:items-center gap-6" id="admin-header">
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-saffron uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4" />
             Verified Municipal Command Center
           </div>
@@ -455,7 +455,7 @@ export default function Admin() {
           </p>
         </div>
         <div className="flex items-center gap-4 bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-md">
-          <div className="w-10 h-10 rounded-full bg-emerald-600 font-black text-sm flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-navy font-black text-sm flex items-center justify-center">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <div className="text-xs">
@@ -468,18 +468,18 @@ export default function Admin() {
       {/* 2. Unified KPIs section updated real-time */}
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4" id="admin-realtime-metrics">
         {[
-          { label: 'Assigned Incidents', value: totalAssigned, icon: AlertTriangle, style: 'text-amber-100 bg-emerald-700/50 border-emerald-500/50' },
-          { label: 'In Repair Pipeline', value: inProgressCount, icon: Hammer, style: 'text-blue-100 bg-emerald-700/50 border-emerald-500/50' },
-          { label: 'Resolved This Month', value: resolvedThisMonth, icon: CheckCircle, style: 'text-emerald-100 bg-emerald-700/50 border-emerald-500/50' },
-          { label: 'Avg Resolution Time', value: `${avgResolutionDays} Days`, icon: Clock, style: 'text-emerald-100 bg-emerald-700/50 border-emerald-500/50' },
-          { label: 'Evaluation Rating', value: `${rating} / 5`, icon: Sparkles, style: 'text-red-100 bg-emerald-700/50 border-emerald-500/50' }
+          { label: 'Assigned Incidents', value: totalAssigned, icon: AlertTriangle, style: 'text-amber-100 bg-navy/20 border-navy/20' },
+          { label: 'In Repair Pipeline', value: inProgressCount, icon: Hammer, style: 'text-blue-100 bg-navy/20 border-navy/20' },
+          { label: 'Resolved This Month', value: resolvedThisMonth, icon: CheckCircle, style: 'text-[#138808]/20 bg-navy/20 border-navy/20' },
+          { label: 'Avg Resolution Time', value: `${avgResolutionDays} Days`, icon: Clock, style: 'text-slate-100 bg-navy/20 border-navy/20' },
+          { label: 'Evaluation Rating', value: `${rating} / 5`, icon: Sparkles, style: 'text-saffron bg-navy/20 border-navy/20' }
         ].map((kpi, idx) => (
-          <div key={idx} className="p-5 bg-emerald-600 border border-emerald-500 rounded-2xl flex items-center gap-4 text-white vibe-3d">
+          <div key={idx} className="p-5 bg-navy border border-navy/80 rounded-2xl flex items-center gap-4 text-white vibe-3d">
             <div className={`p-2.5 rounded-xl border ${kpi.style} shrink-0`}>
               <kpi.icon className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] text-emerald-100 font-bold uppercase tracking-wider">{kpi.label}</p>
+              <p className="text-[10px] text-saffron font-bold uppercase tracking-wider">{kpi.label}</p>
               <h3 className="text-lg font-black text-white mt-1">{kpi.value}</h3>
             </div>
           </div>
@@ -491,7 +491,7 @@ export default function Admin() {
         <button
           onClick={() => { setActiveTab('queue'); setCurrentPage(1); }}
           className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
-            activeTab === 'queue' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-800'
+            activeTab === 'queue' ? 'border-navy text-navy font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -500,7 +500,7 @@ export default function Admin() {
         <button
           onClick={() => setActiveTab('staff')}
           className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
-            activeTab === 'staff' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-800'
+            activeTab === 'staff' ? 'border-navy text-navy font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <Users className="w-4 h-4" />

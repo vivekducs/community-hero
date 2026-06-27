@@ -11,6 +11,7 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        includeAssets: ['icons/icon-192x192.png', 'icons/icon-512x512.png'],
         manifest: {
           name: 'CityMind - Report. Verify. Resolve.',
           short_name: 'CityMind',
@@ -34,7 +35,7 @@ export default defineConfig(() => {
               src: '/icons/icon-512x512.png',
               sizes: '512x512',
               type: 'image/png',
-              purpose: 'maskable'
+              purpose: 'any maskable'
             }
           ]
         },

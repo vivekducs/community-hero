@@ -66,6 +66,7 @@ async function bootstrap() {
         email,
         name: name || email.split('@')[0],
         credibility_score: 100,
+        community_hero_points: 0,
         total_issues_reported: 0,
         badges_earned: [],
         is_authority: email === 'vip901it@gmail.com' || email.endsWith('.gov'),
@@ -89,6 +90,7 @@ async function bootstrap() {
         email,
         name: email.split('@')[0],
         credibility_score: 120,
+        community_hero_points: 50,
         total_issues_reported: 4,
         badges_earned: ['First Responder', 'Eagle Eye'],
         is_authority: email === 'vip901it@gmail.com' || email.endsWith('.gov'),
@@ -509,6 +511,17 @@ async function bootstrap() {
           status: vote === 'upvote' ? 'confirm' : 'reject',
           created_at: new Date().toISOString()
         });
+
+        // Award Community Hero points
+        try {
+          const userRef = doc(db, 'users', user_id);
+          await updateDoc(userRef, {
+            community_hero_points: increment(10),
+            credibility_score: increment(5)
+          });
+        } catch (err) {
+          console.error("Failed to add community hero points", err);
+        }
       }
 
       const total = upvotes + downvotes;

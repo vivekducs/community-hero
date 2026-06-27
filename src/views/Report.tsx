@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import { doc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import imageCompression from 'browser-image-compression';
 import { useAuth } from '../context/AuthContext';
 import { useIssueStore } from '../store';
 import { db, storage } from '../firebaseConfig';
@@ -342,29 +343,66 @@ export default function Report() {
     }
   };
 
-  const uploadToStorage = async (file: File, issueId: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const storageRef = ref(storage, `issues/${issueId}/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+  const uploadToStorage = async (file: File | Blob | string, issueId: string): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+      const timeoutTime = 45000; // 45 seconds timeout
+      const timeoutId = setTimeout(() => {
+        reject(new Error("Upload timed out. Please check your network connection and try again."));
+      }, timeoutTime);
 
-      uploadTask.on('state_changed', 
-        (snapshot) => {
-          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-          setUploadProgress(progress);
-        }, 
-        (error) => {
-          console.error("Storage upload failed:", error);
-          reject(error);
-        }, 
-        async () => {
-          try {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(downloadUrl);
-          } catch (err) {
-            reject(err);
-          }
+      try {
+        let fileToUpload: File | Blob;
+        
+        // Fix for Native path/URIs often provided by web views or native cameras
+        if (typeof file === 'string') {
+          const res = await fetch(file);
+          fileToUpload = await res.blob();
+        } else {
+          fileToUpload = file;
         }
-      );
+
+        toast.loading("Compressing image to save bandwidth...", { id: 'upload-toast' });
+        
+        // Compress image client-side before upload
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1280,
+          useWebWorker: true,
+          initialQuality: 0.8
+        };
+        
+        const compressedFile = await imageCompression(fileToUpload as File, options);
+        toast.loading("Uploading image to Cloud Storage...", { id: 'upload-toast' });
+        
+        const filename = (compressedFile as File).name || 'upload.jpg';
+        const storageRef = ref(storage, `issues/${issueId}/${Date.now()}_${filename}`);
+        const uploadTask = uploadBytesResumable(storageRef, compressedFile);
+
+        uploadTask.on('state_changed', 
+          (snapshot) => {
+            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            setUploadProgress(progress);
+          }, 
+          (error) => {
+            clearTimeout(timeoutId);
+            console.error("Storage upload failed:", error);
+            reject(new Error(`Upload failed: ${error.message}`));
+          }, 
+          async () => {
+            try {
+              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              clearTimeout(timeoutId);
+              resolve(downloadUrl);
+            } catch (err: any) {
+              clearTimeout(timeoutId);
+              reject(new Error(`Failed to verify upload: ${err.message}`));
+            }
+          }
+        );
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        reject(new Error(`Failed to process image: ${err.message}`));
+      }
     });
   };
 
@@ -486,7 +524,7 @@ export default function Report() {
                   minLength: { value: 10, message: 'Minimum 10 characters required' } 
                 })}
                 placeholder="e.g. Broken water pipeline flooding main lane"
-                className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 focus:outline-none transition-all duration-150"
+                className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/10 focus:border-navy focus:outline-none transition-all duration-150"
               />
               {errors.title && <span className="text-xs font-medium text-red-600">{errors.title.message}</span>}
             </div>
@@ -498,15 +536,15 @@ export default function Report() {
                 rows={4}
                 {...register('description')}
                 placeholder="Include size, duration, or any potential road hazards to assist responding public service units..."
-                className="w-full p-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 focus:outline-none transition-all duration-150 resize-none"
+                className="w-full p-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/10 focus:border-navy focus:outline-none transition-all duration-150 resize-none"
               ></textarea>
             </div>
 
             {/* AI Assistant Button */}
-            <div className="p-4 bg-emerald-55/40 rounded-2xl border border-emerald-100/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="p-4 bg-navy/5 rounded-2xl border border-navy/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm">
-                  <Sparkles className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-navy font-bold text-sm">
+                  <Sparkles className="w-4 h-4 text-saffron" />
                   AI Classifier & Dispatcher
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed">Gemini AI will automatically predict the category, optimal responding department, and initial severity level based on your text inputs.</p>
@@ -516,10 +554,10 @@ export default function Report() {
                 id="btn-ai-analysis"
                 onClick={handleAiAnalysis}
                 disabled={aiSuggestions.loading}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 shadow-md transition-colors duration-150 self-start sm:self-center cursor-pointer disabled:bg-slate-300"
+                className="px-4 py-2 bg-navy hover:bg-navy-hover text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 shadow-md transition-colors duration-150 self-start sm:self-center cursor-pointer disabled:bg-slate-300"
               >
                 {aiSuggestions.loading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
@@ -532,15 +570,23 @@ export default function Report() {
             {/* AI Success Feedback */}
             {aiSuggestions.category && (
               <motion.div 
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-3"
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: [0.9, 1.03, 1] }}
+                transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                className="p-4 bg-accent-green/5 border border-accent-green/20 rounded-xl flex items-start gap-3"
               >
-                <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <motion.div
+                  initial={{ scale: 0, rotate: -25 }}
+                  animate={{ scale: [0, 1.35, 1], rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 450, damping: 12, delay: 0.15 }}
+                  className="shrink-0 mt-0.5"
+                >
+                  <CheckCircle className="w-5 h-5 text-accent-green" />
+                </motion.div>
                 <div className="text-xs text-slate-700 space-y-1">
-                  <p className="font-bold text-emerald-800">AI Triage Classification Match ({aiSuggestions.confidence}% Confidence)</p>
-                  <p>Estimated Responding Agency: <span className="font-semibold text-emerald-900">{aiSuggestions.department}</span></p>
-                  <p>Predicted Category: <span className="font-semibold text-emerald-900">{aiSuggestions.category} &gt; {aiSuggestions.subcategory}</span></p>
+                  <p className="font-bold text-accent-green">AI Triage Classification Match ({aiSuggestions.confidence}% Confidence)</p>
+                  <p>Estimated Responding Agency: <span className="font-semibold text-navy">{aiSuggestions.department}</span></p>
+                  <p>Predicted Category: <span className="font-semibold text-navy">{aiSuggestions.category} &gt; {aiSuggestions.subcategory}</span></p>
                 </div>
               </motion.div>
             )}
@@ -551,7 +597,7 @@ export default function Report() {
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Category *</label>
                 <select
                   {...register('category', { required: 'Category is required' })}
-                  className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 focus:outline-none transition-all duration-150"
+                  className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/10 focus:border-navy focus:outline-none transition-all duration-150"
                 >
                   <option value="">Select Category</option>
                   {CIVIC_CATEGORIES.map(c => (
@@ -566,7 +612,7 @@ export default function Report() {
                 <select
                   {...register('subcategory', { required: 'Subcategory is required' })}
                   disabled={!watchedCategory}
-                  className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-400"
+                  className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/10 focus:border-navy focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   <option value="">Select Subcategory</option>
                   {currentSubcategories.map(sub => (
@@ -582,7 +628,7 @@ export default function Report() {
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Estimated Severity</label>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { value: 'low', label: 'Low', color: 'hover:border-emerald-300 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 peer-checked:border-emerald-500' },
+                  { value: 'low', label: 'Low', color: 'hover:border-navy/30 peer-checked:bg-navy/5 peer-checked:text-navy peer-checked:border-navy' },
                   { value: 'medium', label: 'Medium', color: 'hover:border-amber-300 peer-checked:bg-amber-50 peer-checked:text-amber-700 peer-checked:border-amber-500' },
                   { value: 'high', label: 'High', color: 'hover:border-orange-300 peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:border-orange-500' },
                   { value: 'critical', label: 'Critical', color: 'hover:border-red-300 peer-checked:bg-red-50 peer-checked:text-red-700 peer-checked:border-red-500' }
@@ -619,7 +665,7 @@ export default function Report() {
                       type="button"
                       onClick={() => setImageOption(opt.value as any)}
                       className={`text-xs font-bold pb-1.5 border-b-2 transition-all flex items-center gap-1.5 ${
-                        imageOption === opt.value ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-400'
+                        imageOption === opt.value ? 'border-navy text-navy' : 'border-transparent text-slate-400'
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -637,7 +683,7 @@ export default function Report() {
                       type="button"
                       onClick={() => setSelectedPreset(preset.url)}
                       className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all ${
-                        selectedPreset === preset.url ? 'border-emerald-600 shadow-sm scale-95' : 'border-transparent opacity-60'
+                        selectedPreset === preset.url ? 'border-navy shadow-sm scale-95' : 'border-transparent opacity-60'
                       }`}
                     >
                       <img src={preset.url} alt={preset.label} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -652,7 +698,7 @@ export default function Report() {
               {imageOption === 'upload' && (
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-500 cursor-pointer transition-colors space-y-2 bg-slate-50/50"
+                  className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-navy cursor-pointer transition-colors space-y-2 bg-slate-50/50"
                 >
                   <input
                     type="file"
@@ -678,7 +724,7 @@ export default function Report() {
               {imageOption === 'camera' && (
                 <div 
                   onClick={() => cameraInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-500 cursor-pointer transition-colors space-y-2 bg-slate-50/50"
+                  className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-navy cursor-pointer transition-colors space-y-2 bg-slate-50/50"
                 >
                   <input
                     type="file"
@@ -732,12 +778,12 @@ export default function Report() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
+              className="w-full h-14 bg-navy hover:bg-navy-hover active:bg-navy-active text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
               id="btn-report-submit"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2 text-slate-100">
-                  <Loader2 className="w-5 h-5 animate-spin text-teal-500" />
+                  <Loader2 className="w-5 h-5 animate-spin text-saffron" />
                   <span>Submitting ({uploadProgress !== null ? `${uploadProgress}%` : 'Triage classification...'})</span>
                 </div>
               ) : (
@@ -755,17 +801,17 @@ export default function Report() {
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-emerald-600" />
+                <MapPin className="w-5 h-5 text-navy" />
                 Incident Geotargeting
               </h3>
               <button
                 type="button"
                 onClick={handleGPSDetect}
                 disabled={gpsLoading}
-                className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-all"
+                className="p-1.5 text-slate-400 hover:text-navy hover:bg-slate-50 rounded-lg transition-all"
                 title="Detect GPS Position"
               >
-                <RefreshCw className={`w-4 h-4 ${gpsLoading ? 'animate-spin text-emerald-600' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${gpsLoading ? 'animate-spin text-navy' : ''}`} />
               </button>
             </div>
             
@@ -779,7 +825,7 @@ export default function Report() {
               <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full h-10 px-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150 cursor-pointer text-slate-700"
+                className="w-full h-10 px-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150 cursor-pointer text-slate-700"
               >
                 {INDIAN_CITIES.map(c => (
                   <option key={c.name} value={c.name}>{c.name}</option>
@@ -805,8 +851,8 @@ export default function Report() {
               </MapContainer>
             </div>
             {selectedLocation ? (
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-[11px] text-emerald-800 font-semibold flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <div className="p-3 bg-accent-green/10 rounded-xl border border-accent-green/20 text-[11px] text-accent-green font-semibold flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-accent-green shrink-0" />
                 <span>Geopoint Captured: {selectedLocation.lat.toFixed(5)}°N, {selectedLocation.lng.toFixed(5)}°E</span>
               </div>
             ) : (

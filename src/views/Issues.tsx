@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -17,7 +17,8 @@ import {
   Filter,
   CheckCircle,
   X,
-  Eye
+  Eye,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast, Toaster } from 'react-hot-toast';
@@ -38,11 +39,11 @@ const getStatusIcon = (status: string, category: string) => {
 
   let color = 'bg-slate-500';
   if (status === 'reported' || status === 'verifying' || status === 'verified') {
-    color = 'bg-emerald-500'; // pending
+    color = 'bg-saffron'; // saffron (pending/verifying)
   } else if (status === 'investigating' || status === 'resolving' || status === 'assigned' || status === 'Assigned') {
-    color = 'bg-blue-500'; // in-progress
+    color = 'bg-navy'; // navy (in-progress)
   } else if (status === 'resolved') {
-    color = 'bg-red-500'; // resolved
+    color = 'bg-accent-green'; // success green
   }
 
   return L.divIcon({
@@ -85,9 +86,20 @@ const getCityDistance = (lat1: number, lng1: number, lat2: number, lng2: number)
 export default function Issues() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { issues, setIssues } = useIssueStore();
 
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Sync URL search query parameters with the searchQuery state
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchParam = params.get('search');
+    if (searchParam !== null) {
+      setSearchQuery(searchParam);
+    }
+  }, [location.search]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedCity, setSelectedCity] = useState('Delhi');
@@ -105,9 +117,11 @@ export default function Issues() {
       // Sort issues by newest first
       list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setIssues(list);
+      setLoading(false);
     }, (error) => {
       console.error("Firestore live issues listener error:", error);
       toast.error("Could not bind real-time issues synchronizer.");
+      setLoading(false);
     });
 
     return () => unsub();
@@ -177,19 +191,19 @@ export default function Issues() {
       case 'medium':
         return 'text-amber-700 bg-amber-50 border-amber-200';
       default:
-        return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+        return 'text-navy bg-navy/10 border-navy/20';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'resolved':
-        return 'bg-emerald-500 text-white';
+        return 'bg-accent-green text-white';
       case 'in progress':
       case 'resolving':
-        return 'bg-amber-500 text-white';
+        return 'bg-saffron text-white';
       case 'assigned':
-        return 'bg-emerald-500 text-white';
+        return 'bg-navy text-white';
       default:
         return 'bg-slate-500 text-white';
     }
@@ -215,7 +229,7 @@ export default function Issues() {
             placeholder="Search incident logs by title, category, or subcategory..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
+            className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150"
           />
         </div>
 
@@ -225,7 +239,7 @@ export default function Issues() {
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
-            className="h-11 px-3.5 text-xs font-bold bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 focus:outline-none cursor-pointer hover:bg-emerald-100/50 transition-all shrink-0"
+            className="h-11 px-3.5 text-xs font-bold bg-navy/10 border border-navy/20 rounded-xl text-navy focus:outline-none cursor-pointer hover:bg-navy/20 transition-all shrink-0"
           >
             <option value="All">All Cities</option>
             {INDIAN_CITIES.map(c => (
@@ -265,7 +279,7 @@ export default function Issues() {
           {/* Quick Add Report Button */}
           <Link 
             to="/report" 
-            className="h-11 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all shrink-0 cursor-pointer"
+            className="h-11 px-4 bg-navy hover:bg-navy-hover text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Report
@@ -276,7 +290,7 @@ export default function Issues() {
             <button
               onClick={() => setActiveTab('list')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'list' ? 'bg-white shadow text-emerald-600' : 'text-slate-500'
+                activeTab === 'list' ? 'bg-white shadow text-navy font-bold' : 'text-slate-500'
               }`}
             >
               List
@@ -284,7 +298,7 @@ export default function Issues() {
             <button
               onClick={() => setActiveTab('map')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'map' ? 'bg-white shadow text-emerald-600' : 'text-slate-500'
+                activeTab === 'map' ? 'bg-white shadow text-navy font-bold' : 'text-slate-500'
               }`}
             >
               Map
@@ -300,7 +314,24 @@ export default function Issues() {
         <div className={`md:col-span-2 flex flex-col space-y-3 overflow-y-auto pr-1 h-full min-h-0 ${
           activeTab === 'list' ? 'block' : 'hidden md:block'
         }`} id="directory-scroll-pane">
-          {filteredIssues.length === 0 ? (
+          {loading ? (
+            [1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="p-4 bg-white rounded-2xl border border-slate-200 flex gap-4 animate-pulse">
+                <div className="w-20 h-20 rounded-xl bg-slate-200 shrink-0"></div>
+                <div className="space-y-2 flex-1 min-w-0 py-1">
+                  <div className="flex gap-1.5">
+                    <div className="h-4 w-12 bg-slate-200 rounded-md"></div>
+                    <div className="h-4 w-16 bg-slate-200 rounded-md"></div>
+                  </div>
+                  <div className="h-4 w-3/4 bg-slate-200 rounded mt-2"></div>
+                  <div className="space-y-1.5 mt-3">
+                    <div className="h-3 w-full bg-slate-200 rounded"></div>
+                    <div className="h-3 w-5/6 bg-slate-200 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : filteredIssues.length === 0 ? (
             <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-3">
               <AlertTriangle className="w-10 h-10 text-slate-300 mx-auto" />
               <p className="text-sm font-bold text-slate-600">No reported incidents match filters.</p>
@@ -340,7 +371,7 @@ export default function Issues() {
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-emerald-600 transition-colors line-clamp-1 truncate">
+                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-navy transition-colors line-clamp-1 truncate">
                     {issue.title}
                   </h3>
                   
@@ -354,7 +385,7 @@ export default function Issues() {
                       <span>{issue.location.lat.toFixed(4)}°, {issue.location.lng.toFixed(4)}°</span>
                     </span>
                     <span className="flex items-center gap-1">
-                      <ThumbsUp className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <ThumbsUp className="w-3.5 h-3.5 text-saffron shrink-0" />
                       <span className="text-slate-700 font-bold">{issue.upvotes || 0} confirmations</span>
                     </span>
                   </div>
@@ -364,7 +395,7 @@ export default function Issues() {
                 <Link 
                   to={`/issues/${issue.issue_id}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute right-3 top-3 p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block"
+                  className="absolute right-3 top-3 p-1.5 text-slate-400 hover:text-navy hover:bg-navy/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block"
                   title="View Detail Page"
                 >
                   <Eye className="w-4 h-4" />
@@ -378,62 +409,69 @@ export default function Issues() {
         <div className={`md:col-span-3 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-inner h-full relative z-10 ${
           activeTab === 'map' ? 'block' : 'hidden md:block'
         }`} id="map-canvas-pane">
-          <MapContainer 
-            center={mapCenter} 
-            zoom={13} 
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <MapController center={mapCenter} />
-            {filteredIssues.map((issue) => (
-              <Marker 
-                key={issue.issue_id} 
-                position={[issue.location.lat, issue.location.lng]}
-                icon={getStatusIcon(issue.status, issue.category)}
-              >
-                <Popup className="citymind-popup">
-                  <div className="min-w-[210px] font-sans overflow-hidden rounded-lg shadow-sm" id={`popup-${issue.issue_id}`}>
-                    <div className="bg-emerald-600 px-3 py-2 text-white flex justify-between items-center gap-2">
-                      <span className={`px-2 py-0.5 text-[8px] font-extrabold uppercase rounded bg-white/20 text-white`}>
-                        {issue.severity}
-                      </span>
-                      <span className={`px-2 py-0.5 text-[8px] font-extrabold uppercase rounded bg-slate-900/40 text-white`}>
-                        {issue.status}
-                      </span>
-                    </div>
-                    <div className="p-3 space-y-2.5 bg-white">
-                      <h4 className="font-extrabold text-xs text-slate-900 leading-tight">{issue.title}</h4>
-                      
-                      {issue.image_urls?.[0] && (
-                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-slate-100">
-                          <img 
-                            src={issue.image_urls[0]} 
-                            alt="Thumbnail" 
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
+          {loading ? (
+             <div className="w-full h-full bg-slate-200 animate-pulse flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 text-navy animate-spin mb-4" />
+                <p className="text-sm font-semibold text-slate-500">Loading map data...</p>
+             </div>
+          ) : (
+            <MapContainer 
+              center={mapCenter} 
+              zoom={13} 
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <MapController center={mapCenter} />
+              {filteredIssues.map((issue) => (
+                <Marker 
+                  key={issue.issue_id} 
+                  position={[issue.location.lat, issue.location.lng]}
+                  icon={getStatusIcon(issue.status, issue.category)}
+                >
+                  <Popup className="citymind-popup">
+                    <div className="min-w-[210px] font-sans overflow-hidden rounded-lg shadow-sm" id={`popup-${issue.issue_id}`}>
+                      <div className="bg-navy px-3 py-2 text-white flex justify-between items-center gap-2">
+                        <span className={`px-2 py-0.5 text-[8px] font-extrabold uppercase rounded bg-white/20 text-white`}>
+                          {issue.severity}
+                        </span>
+                        <span className={`px-2 py-0.5 text-[8px] font-extrabold uppercase rounded bg-slate-900/40 text-white`}>
+                          {issue.status}
+                        </span>
+                      </div>
+                      <div className="p-3 space-y-2.5 bg-white">
+                        <h4 className="font-extrabold text-xs text-slate-900 leading-tight">{issue.title}</h4>
+                        
+                        {issue.image_urls?.[0] && (
+                          <div className="aspect-video w-full rounded-lg overflow-hidden border border-slate-100">
+                            <img 
+                              src={issue.image_urls[0]} 
+                              alt="Thumbnail" 
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
 
-                    <div className="flex justify-between items-center text-[10px] border-t border-slate-100 pt-2 font-medium">
-                      <span className="text-slate-400">Category: <span className="font-semibold text-slate-700">{issue.category}</span></span>
-                      <Link 
-                        to={`/issues/${issue.issue_id}`}
-                        className="font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5"
-                      >
-                        Details
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
+                      <div className="flex justify-between items-center text-[10px] border-t border-slate-100 pt-2 font-medium">
+                        <span className="text-slate-400">Category: <span className="font-semibold text-slate-700">{issue.category}</span></span>
+                        <Link 
+                          to={`/issues/${issue.issue_id}`}
+                          className="font-bold text-navy hover:text-navy-hover flex items-center gap-0.5"
+                        >
+                          Details
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+                      </div>
                     </div>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          )}
         </div>
 
       </div>

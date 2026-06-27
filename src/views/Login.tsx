@@ -37,7 +37,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center p-4 bg-gradient-to-tr from-emerald-50/40 via-white to-slate-50/30" id="login-view">
+    <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center p-4 bg-gradient-to-tr from-saffron/5 via-white to-slate-50/30" id="login-view">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -46,7 +46,7 @@ export default function Login() {
       >
         {/* Title */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-100 mb-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-navy text-white shadow-lg shadow-navy/10 mb-2">
             <AlertTriangle className="w-6 h-6" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome to CityMind</h2>
@@ -77,7 +77,7 @@ export default function Login() {
                   }
                 })}
                 placeholder="you@example.com"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.email && (
@@ -88,7 +88,7 @@ export default function Login() {
           <div className="space-y-1">
             <div className="flex justify-between items-center">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Password</label>
-              <a href="#" className="text-xs font-semibold text-emerald-600 hover:text-emerald-500">Forgot?</a>
+              <a href="#" className="text-xs font-semibold text-navy hover:text-navy-hover">Forgot?</a>
             </div>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -104,7 +104,7 @@ export default function Login() {
                   }
                 })}
                 placeholder="••••••••"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.password && (
@@ -115,7 +115,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer"
+            className="w-full h-11 bg-navy hover:bg-navy-hover active:bg-slate-900 disabled:bg-slate-100 disabled:text-slate-400 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer"
             id="btn-login-submit"
           >
             {submitting ? (
@@ -163,7 +163,7 @@ export default function Login() {
         {/* Toggle sign up */}
         <p className="text-center text-sm text-slate-500">
           Don't have an account yet?{' '}
-          <Link to="/signup" className="font-semibold text-emerald-600 hover:text-emerald-500" id="link-to-signup">
+          <Link to="/signup" className="font-semibold text-navy hover:text-navy-hover" id="link-to-signup">
             Sign Up
           </Link>
         </p>

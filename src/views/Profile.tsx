@@ -54,9 +54,9 @@ export default function Profile() {
   }, [user]);
 
   const mockBadges = [
-    { name: 'First Responder', desc: 'Reported your first hyperlocal issue', icon: Activity, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-    { name: 'Community Sentinel', desc: 'Verified 5 civic reports correctly', icon: ShieldCheck, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-    { name: 'Eagle Eye', desc: 'Maintained credibility index above 95%', icon: CheckCircle, color: 'bg-amber-50 text-amber-700 border-amber-200' }
+    { name: 'First Responder', desc: 'Reported your first hyperlocal issue', icon: Activity, color: 'bg-navy/10 text-navy border-navy/20' },
+    { name: 'Community Sentinel', desc: 'Verified 5 civic reports correctly', icon: ShieldCheck, color: 'bg-saffron/10 text-saffron border-saffron/20' },
+    { name: 'Eagle Eye', desc: 'Maintained credibility index above 95%', icon: CheckCircle, color: 'bg-[#138808]/10 text-[#138808] border-[#138808]/20' }
   ];
 
   if (!user || loading) {
@@ -80,10 +80,10 @@ export default function Profile() {
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_30%,#4f46e5_0%,transparent_50%)]"></div>
         
         {/* Large Initials Avatar */}
-        <div className="w-24 h-24 rounded-full bg-emerald-600 text-white font-black text-3xl flex items-center justify-center border-4 border-slate-800 shadow-lg relative shrink-0">
+        <div className="w-24 h-24 rounded-full bg-navy text-white font-black text-3xl flex items-center justify-center border-4 border-slate-800 shadow-lg relative shrink-0">
           {activeProfile.name.charAt(0).toUpperCase()}
           {activeProfile.is_authority && (
-            <span className="absolute bottom-0 right-0 p-1.5 bg-emerald-500 rounded-full border-2 border-slate-900" title="Verified Public Authority">
+            <span className="absolute bottom-0 right-0 p-1.5 bg-[#138808] rounded-full border-2 border-slate-900" title="Verified Public Authority">
               <ShieldCheck className="w-4 h-4 text-white" />
             </span>
           )}
@@ -100,10 +100,14 @@ export default function Profile() {
 
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-mono">
             <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
-              Credibility Score: <span className="text-emerald-400 font-bold">{activeProfile.credibility_score}</span>
+              Credibility Score: <span className="text-saffron font-bold">{activeProfile.credibility_score}</span>
+            </div>
+            <div className="px-3 py-1 rounded-full bg-navy border border-navy/50 text-white flex items-center gap-1.5 shadow-sm shadow-navy/20">
+              <Award className="w-3.5 h-3.5 text-saffron" />
+              Community Hero Points: <span className="text-saffron font-bold">{activeProfile.community_hero_points || 0}</span>
             </div>
             <div className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
-              Registered Zone: <span className="text-emerald-400 font-bold">{activeProfile.zone || 'Zone 4-A'}</span>
+              Registered Zone: <span className="text-saffron font-bold">{activeProfile.zone || 'Zone 4-A'}</span>
             </div>
           </div>
         </div>
@@ -132,6 +136,10 @@ export default function Profile() {
                 <span className="text-slate-500">Verifications Sent</span>
                 <span className="font-bold text-slate-900">{verCount}</span>
               </div>
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-50 text-sm">
+                <span className="text-[#138808] font-semibold">Hero Points Earned</span>
+                <span className="font-bold text-[#138808]">{activeProfile.community_hero_points || 0}</span>
+              </div>
               <div className="flex justify-between items-center py-2.5 text-sm">
                 <span className="text-slate-500">Account Created</span>
                 <span className="font-semibold text-slate-500 flex items-center gap-1">
@@ -147,7 +155,7 @@ export default function Profile() {
         <div className="md:col-span-2 space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-slate-100 vibe-3d space-y-4">
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
-              <Award className="w-5 h-5 text-emerald-600" />
+              <Award className="w-5 h-5 text-[#138808]" />
               Unlocked Badges
             </h3>
             <p className="text-xs text-slate-500">Gain score and confirm real issues in your neighborhood to unlock higher medals of civic excellence.</p>

@@ -16,6 +16,7 @@
     "@types/leaflet.heat": "^0.2.5",
     "@vitejs/plugin-react": "^5.0.4",
     "axios": "^1.18.1",
+    "browser-image-compression": "^2.0.2",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "firebase": "^12.15.0",

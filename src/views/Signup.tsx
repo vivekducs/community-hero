@@ -37,7 +37,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center p-4 bg-gradient-to-tr from-emerald-50/40 via-white to-slate-50/30" id="signup-view">
+    <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center p-4 bg-gradient-to-tr from-saffron/5 via-white to-slate-50/30" id="signup-view">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -46,7 +46,7 @@ export default function Signup() {
       >
         {/* Title */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-100 mb-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-navy text-white shadow-lg shadow-navy/10 mb-2">
             <AlertTriangle className="w-6 h-6" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Create your Account</h2>
@@ -71,7 +71,7 @@ export default function Signup() {
                 type="text"
                 {...register('name', { required: 'Name is required' })}
                 placeholder="Jane Doe"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.name && (
@@ -95,7 +95,7 @@ export default function Signup() {
                   }
                 })}
                 placeholder="you@example.com"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.email && (
@@ -119,7 +119,7 @@ export default function Signup() {
                   }
                 })}
                 placeholder="••••••••"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.password && (
@@ -140,7 +140,7 @@ export default function Signup() {
                   validate: (value) => value === password || 'Passwords do not match'
                 })}
                 placeholder="••••••••"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.confirmPassword && (
@@ -151,7 +151,7 @@ export default function Signup() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer"
+            className="w-full h-11 bg-navy hover:bg-navy-hover active:bg-slate-900 disabled:bg-slate-100 disabled:text-slate-400 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer"
             id="btn-signup-submit"
           >
             {submitting ? (
@@ -199,7 +199,7 @@ export default function Signup() {
         {/* Toggle sign up */}
         <p className="text-center text-sm text-slate-500">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-emerald-600 hover:text-emerald-500" id="link-to-login">
+          <Link to="/login" className="font-semibold text-navy hover:text-navy-hover" id="link-to-login">
             Sign In
           </Link>
         </p>

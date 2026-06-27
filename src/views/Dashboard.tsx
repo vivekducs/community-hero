@@ -36,22 +36,22 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
 
 const CATEGORY_COLORS: Record<string, string> = {
-  'Public Works': '#059669', // emerald-600
+  'Public Works': '#003366', // navy blue
   'Water & Sanitation': '#0ea5e9', // sky-500
   'Traffic & Transit': '#f59e0b', // amber-500
   'Healthcare': '#ef4444', // red-500
   'Electricity': '#eab308', // yellow-500
-  'Waste Management': '#14b8a6', // teal-500
+  'Waste Management': '#138808', // accent green
   'Other': '#94a3b8'
 };
 
 const STATUS_COLORS: Record<string, string> = {
   'reported': '#94a3b8',
-  'verifying': '#f59e0b',
+  'verifying': '#FF9933', // saffron
   'verified': '#8b5cf6',
   'investigating': '#3b82f6',
-  'resolving': '#0ea5e9',
-  'resolved': '#10b981',
+  'resolving': '#FF9933', // saffron
+  'resolved': '#138808', // success green
   'closed': '#64748b'
 };
 
@@ -147,9 +147,50 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-[50vh] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-        <p className="mt-3 text-xs font-semibold text-slate-500">Loading city analytics...</p>
+      <div className="space-y-8 animate-pulse" id="dashboard-loading">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div className="space-y-3">
+            <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-lg w-64"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-96"></div>
+          </div>
+          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-lg w-32"></div>
+        </div>
+        
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="p-5 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl flex flex-col gap-3 h-[130px]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700"></div>
+                <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-20"></div>
+              </div>
+              <div className="mt-auto space-y-2">
+                <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+                <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-24"></div>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 h-64">
+          <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6">
+            <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-40 mb-6"></div>
+            <div className="h-full flex items-center justify-center pb-8">
+              <div className="w-40 h-40 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6">
+            <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-40 mb-6"></div>
+            <div className="h-full bg-slate-200 dark:bg-slate-700 rounded-lg pb-8"></div>
+          </div>
+        </section>
+
+        <section className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl h-[400px] flex flex-col">
+          <div className="p-4 border-b border-slate-100 dark:border-slate-700">
+             <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-48 mb-2"></div>
+             <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-64"></div>
+          </div>
+          <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-b-2xl"></div>
+        </section>
       </div>
     );
   }
@@ -170,10 +211,10 @@ export default function Dashboard() {
       {/* Numerical Stats Bar */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4" id="dashboard-status-stats">
         {[
-          { label: 'Total Issues Reported', count: totalIssues, icon: BarChart2, style: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800', trend: '+12% vs last month' },
-          { label: 'Issues Resolved', count: resolvedIssues, icon: CheckCircle, style: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800', trend: `${resolvedRate}% resolution rate` },
+          { label: 'Total Issues Reported', count: totalIssues, icon: BarChart2, style: 'text-navy bg-navy/10 dark:bg-navy/30 dark:text-blue-400 border-navy/20 dark:border-navy/40', trend: '+12% vs last month' },
+          { label: 'Issues Resolved', count: resolvedIssues, icon: CheckCircle, style: 'text-[#138808] bg-[#138808]/10 dark:bg-[#138808]/30 dark:text-[#138808]/40 border-[#138808]/20 dark:border-[#138808]/40', trend: `${resolvedRate}% resolution rate` },
           { label: 'Avg Resolution Time', count: '4.2d', icon: Clock, style: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 border-blue-100 dark:border-blue-800', trend: '-1.1d vs last month' },
-          { label: 'Community Verified', count: verifiedIssues, icon: Wrench, style: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 border-amber-100 dark:border-amber-800', trend: `${verifiedRate}% verification rate` }
+          { label: 'Community Verified', count: verifiedIssues, icon: Wrench, style: 'text-saffron bg-saffron/10 dark:bg-saffron/30 dark:text-saffron border-saffron/20 dark:border-saffron/40', trend: `${verifiedRate}% verification rate` }
         ].map((stat, i) => (
           <motion.div 
             key={i} 
@@ -243,7 +284,7 @@ export default function Dashboard() {
                 />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill="#14b8a6" />
+                    <Cell key={`cell-${index}`} fill="#003366" />
                   ))}
                 </Bar>
               </BarChart>
@@ -270,7 +311,7 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-500" />
+              <Sparkles className="w-5 h-5 text-saffron" />
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Predictive AI Insights</h2>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
@@ -281,7 +322,7 @@ export default function Dashboard() {
 
         {insightsLoading ? (
           <div className="p-12 text-center bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center">
-            <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
+            <Loader2 className="w-6 h-6 text-navy animate-spin" />
             <p className="text-xs text-slate-400 mt-2 font-medium">Computing pattern models...</p>
           </div>
         ) : insights.length === 0 ? (
@@ -302,7 +343,7 @@ export default function Dashboard() {
                 >
                   <div className="space-y-3">
                     <div className="flex justify-between items-start gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-saffron flex items-center gap-1">
                         <Activity className="w-3 h-3" />
                         Pattern Prediction
                       </span>
@@ -318,8 +359,8 @@ export default function Dashboard() {
                   </div>
 
                   <div className="space-y-3 pt-4 border-t border-slate-50 dark:border-slate-700/50">
-                    <div className="bg-emerald-50/40 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-50/30 dark:border-emerald-800/30">
-                      <span className="text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-400 block mb-1">
+                    <div className="bg-navy/5 dark:bg-navy/20 rounded-xl p-3 border border-navy/10 dark:border-navy/30">
+                      <span className="text-[10px] font-bold uppercase text-navy dark:text-saffron block mb-1">
                         Preventive Action Plan
                       </span>
                       <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
@@ -329,7 +370,7 @@ export default function Dashboard() {
 
                     <div className="flex flex-wrap items-center justify-between text-[10px] text-slate-400 font-semibold pt-1">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-emerald-400" />
+                        <Calendar className="w-3 h-3 text-saffron" />
                         {insight.forecast_period || 'Next 14 Days'}
                       </span>
                     </div>
