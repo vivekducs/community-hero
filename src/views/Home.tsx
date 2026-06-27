@@ -555,9 +555,9 @@ export default function Home() {
       {/* Modern Dashboard Simple Footer */}
       <footer className="pt-4 pb-2 border-t border-slate-100 dark:border-slate-850 flex flex-col sm:flex-row items-center justify-between gap-4" id="dashboard-footer">
         <div className="flex items-center gap-4 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-          <a href="#about" className="hover:text-navy dark:hover:text-saffron transition-colors">About Us</a>
-          <a href="#privacy" className="hover:text-navy dark:hover:text-saffron transition-colors">Privacy Policy</a>
-          <a href="#support" className="hover:text-navy dark:hover:text-saffron transition-colors">Contact Support</a>
+          <Link to="/about" className="hover:text-navy dark:hover:text-saffron transition-colors">About Us</Link>
+          <Link to="/privacy" className="hover:text-navy dark:hover:text-saffron transition-colors">Privacy Policy</Link>
+          <Link to="/support" className="hover:text-navy dark:hover:text-saffron transition-colors">Contact Support</Link>
         </div>
         <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 flex items-center gap-1">
           <span>Powered by</span>

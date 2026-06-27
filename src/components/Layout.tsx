@@ -380,15 +380,15 @@ export default function Layout({ children }: LayoutProps) {
               <p className="text-xs font-medium text-[#4B5563] tracking-wide">GCP CLOUD RUN: citymind-backend-active</p>
               <span className="text-xs text-gray-300">|</span>
               <div className="flex items-center gap-4">
-                <a href="#" onClick={(e) => e.preventDefault()} className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
+                <Link to="/about" className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
+                  About Us
+                </Link>
+                <Link to="/privacy" className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
                   Privacy Policy
-                </a>
-                <a href="#" onClick={(e) => e.preventDefault()} className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
-                  Terms of Service
-                </a>
-                <a href="#" onClick={(e) => e.preventDefault()} className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
+                </Link>
+                <Link to="/support" className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
                   Support
-                </a>
+                </Link>
               </div>
             </div>
             <div className="flex gap-2 items-center">

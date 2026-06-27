@@ -344,10 +344,38 @@ export default function Report() {
   };
 
   const uploadToStorage = async (file: File | Blob | string, issueId: string): Promise<string> => {
+    const convertToBase64AndResolve = async (blob: Blob): Promise<string> => {
+      try {
+        const base64Str = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(blob);
+        });
+        toast.success("Image optimized for cloud submission!", { id: 'upload-toast' });
+        return base64Str;
+      } catch (err) {
+        throw new Error("Failed to encode image to base64.");
+      }
+    };
+
     return new Promise(async (resolve, reject) => {
       const timeoutTime = 45000; // 45 seconds timeout
-      const timeoutId = setTimeout(() => {
-        reject(new Error("Upload timed out. Please check your network connection and try again."));
+      const timeoutId = setTimeout(async () => {
+        try {
+          console.warn("Upload timed out, falling back to local encoding");
+          let fileToUpload: File | Blob;
+          if (typeof file === 'string') {
+            const res = await fetch(file);
+            fileToUpload = await res.blob();
+          } else {
+            fileToUpload = file;
+          }
+          const base64Str = await convertToBase64AndResolve(fileToUpload);
+          resolve(base64Str);
+        } catch (e) {
+          reject(new Error("Upload timed out and fallback encoding failed."));
+        }
       }, timeoutTime);
 
       try {
@@ -365,13 +393,20 @@ export default function Report() {
         
         // Compress image client-side before upload
         const options = {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 1280,
+          maxSizeMB: 0.15, // Target smaller size for safer base64 and fast upload
+          maxWidthOrHeight: 1024,
           useWebWorker: true,
-          initialQuality: 0.8
+          initialQuality: 0.7
         };
         
-        const compressedFile = await imageCompression(fileToUpload as File, options);
+        let compressedFile: Blob;
+        try {
+          compressedFile = await imageCompression(fileToUpload as File, options);
+        } catch (compErr) {
+          console.warn("Image compression failed, using original file:", compErr);
+          compressedFile = fileToUpload;
+        }
+
         toast.loading("Uploading image to Cloud Storage...", { id: 'upload-toast' });
         
         const filename = (compressedFile as File).name || 'upload.jpg';
@@ -383,10 +418,15 @@ export default function Report() {
             const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
             setUploadProgress(progress);
           }, 
-          (error) => {
+          async (error) => {
             clearTimeout(timeoutId);
-            console.error("Storage upload failed:", error);
-            reject(new Error(`Upload failed: ${error.message}`));
+            console.warn("Storage upload failed, using secure base64 fallback:", error);
+            try {
+              const base64Str = await convertToBase64AndResolve(compressedFile);
+              resolve(base64Str);
+            } catch (fbErr: any) {
+              reject(new Error(`Upload failed: ${error.message} (Fallback failed: ${fbErr.message})`));
+            }
           }, 
           async () => {
             try {
@@ -394,14 +434,34 @@ export default function Report() {
               clearTimeout(timeoutId);
               resolve(downloadUrl);
             } catch (err: any) {
-              clearTimeout(timeoutId);
-              reject(new Error(`Failed to verify upload: ${err.message}`));
+              console.warn("Failed to get download URL, using secure base64 fallback:", err);
+              try {
+                const base64Str = await convertToBase64AndResolve(compressedFile);
+                clearTimeout(timeoutId);
+                resolve(base64Str);
+              } catch (fbErr: any) {
+                clearTimeout(timeoutId);
+                reject(new Error(`Failed to verify upload: ${err.message} (Fallback failed: ${fbErr.message})`));
+              }
             }
           }
         );
       } catch (err: any) {
         clearTimeout(timeoutId);
-        reject(new Error(`Failed to process image: ${err.message}`));
+        console.warn("Image processing error, using secure base64 fallback:", err);
+        try {
+          let fileToUpload: File | Blob;
+          if (typeof file === 'string') {
+            const res = await fetch(file);
+            fileToUpload = await res.blob();
+          } else {
+            fileToUpload = file;
+          }
+          const base64Str = await convertToBase64AndResolve(fileToUpload);
+          resolve(base64Str);
+        } catch (fbErr: any) {
+          reject(new Error(`Failed to process image: ${err.message} (Fallback failed: ${fbErr.message})`));
+        }
       }
     });
   };

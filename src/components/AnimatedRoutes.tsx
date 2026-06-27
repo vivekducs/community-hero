@@ -15,6 +15,9 @@ import Dashboard from '../views/Dashboard';
 import Profile from '../views/Profile';
 import Admin from '../views/Admin';
 import Leaderboard from '../views/Leaderboard';
+import About from '../views/About';
+import Privacy from '../views/Privacy';
+import Support from '../views/Support';
 
 export default function AnimatedRoutes() {
   const location = useLocation();
@@ -104,6 +107,30 @@ export default function AnimatedRoutes() {
                 <AnimatedPage><Admin /></AnimatedPage>
               </Layout>
             </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/about" 
+          element={
+            <Layout>
+              <AnimatedPage><About /></AnimatedPage>
+            </Layout>
+          } 
+        />
+        <Route 
+          path="/privacy" 
+          element={
+            <Layout>
+              <AnimatedPage><Privacy /></AnimatedPage>
+            </Layout>
+          } 
+        />
+        <Route 
+          path="/support" 
+          element={
+            <Layout>
+              <AnimatedPage><Support /></AnimatedPage>
+            </Layout>
           } 
         />
         </Routes>
