@@ -486,9 +486,9 @@ export default function Report() {
                   minLength: { value: 10, message: 'Minimum 10 characters required' } 
                 })}
                 placeholder="e.g. Broken water pipeline flooding main lane"
-                className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 focus:outline-none transition-all duration-150"
               />
-              {errors.title && <span className="text-xs font-medium text-rose-600">{errors.title.message}</span>}
+              {errors.title && <span className="text-xs font-medium text-red-600">{errors.title.message}</span>}
             </div>
 
             {/* Description */}
@@ -498,14 +498,14 @@ export default function Report() {
                 rows={4}
                 {...register('description')}
                 placeholder="Include size, duration, or any potential road hazards to assist responding public service units..."
-                className="w-full p-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150 resize-none"
+                className="w-full p-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 focus:outline-none transition-all duration-150 resize-none"
               ></textarea>
             </div>
 
             {/* AI Assistant Button */}
-            <div className="p-4 bg-indigo-55/40 rounded-2xl border border-indigo-100/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="p-4 bg-emerald-55/40 rounded-2xl border border-emerald-100/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm">
+                <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm">
                   <Sparkles className="w-4 h-4" />
                   AI Classifier & Dispatcher
                 </div>
@@ -516,7 +516,7 @@ export default function Report() {
                 id="btn-ai-analysis"
                 onClick={handleAiAnalysis}
                 disabled={aiSuggestions.loading}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 shadow-md transition-colors duration-150 self-start sm:self-center cursor-pointer disabled:bg-slate-300"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 shadow-md transition-colors duration-150 self-start sm:self-center cursor-pointer disabled:bg-slate-300"
               >
                 {aiSuggestions.loading ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -551,14 +551,14 @@ export default function Report() {
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Category *</label>
                 <select
                   {...register('category', { required: 'Category is required' })}
-                  className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150"
+                  className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 focus:outline-none transition-all duration-150"
                 >
                   <option value="">Select Category</option>
                   {CIVIC_CATEGORIES.map(c => (
                     <option key={c.name} value={c.name}>{c.name}</option>
                   ))}
                 </select>
-                {errors.category && <span className="text-xs font-medium text-rose-600">{errors.category.message}</span>}
+                {errors.category && <span className="text-xs font-medium text-red-600">{errors.category.message}</span>}
               </div>
 
               <div className="space-y-1">
@@ -566,14 +566,14 @@ export default function Report() {
                 <select
                   {...register('subcategory', { required: 'Subcategory is required' })}
                   disabled={!watchedCategory}
-                  className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-400"
+                  className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 focus:outline-none transition-all duration-150 disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   <option value="">Select Subcategory</option>
                   {currentSubcategories.map(sub => (
                     <option key={sub} value={sub}>{sub}</option>
                   ))}
                 </select>
-                {errors.subcategory && <span className="text-xs font-medium text-rose-600">{errors.subcategory.message}</span>}
+                {errors.subcategory && <span className="text-xs font-medium text-red-600">{errors.subcategory.message}</span>}
               </div>
             </div>
 
@@ -585,7 +585,7 @@ export default function Report() {
                   { value: 'low', label: 'Low', color: 'hover:border-emerald-300 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 peer-checked:border-emerald-500' },
                   { value: 'medium', label: 'Medium', color: 'hover:border-amber-300 peer-checked:bg-amber-50 peer-checked:text-amber-700 peer-checked:border-amber-500' },
                   { value: 'high', label: 'High', color: 'hover:border-orange-300 peer-checked:bg-orange-50 peer-checked:text-orange-700 peer-checked:border-orange-500' },
-                  { value: 'critical', label: 'Critical', color: 'hover:border-rose-300 peer-checked:bg-rose-50 peer-checked:text-rose-700 peer-checked:border-rose-500' }
+                  { value: 'critical', label: 'Critical', color: 'hover:border-red-300 peer-checked:bg-red-50 peer-checked:text-red-700 peer-checked:border-red-500' }
                 ].map(sev => (
                   <label key={sev.value} className="cursor-pointer">
                     <input
@@ -619,7 +619,7 @@ export default function Report() {
                       type="button"
                       onClick={() => setImageOption(opt.value as any)}
                       className={`text-xs font-bold pb-1.5 border-b-2 transition-all flex items-center gap-1.5 ${
-                        imageOption === opt.value ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400'
+                        imageOption === opt.value ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-400'
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -637,7 +637,7 @@ export default function Report() {
                       type="button"
                       onClick={() => setSelectedPreset(preset.url)}
                       className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all ${
-                        selectedPreset === preset.url ? 'border-indigo-600 shadow-sm scale-95' : 'border-transparent opacity-60'
+                        selectedPreset === preset.url ? 'border-emerald-600 shadow-sm scale-95' : 'border-transparent opacity-60'
                       }`}
                     >
                       <img src={preset.url} alt={preset.label} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -652,7 +652,7 @@ export default function Report() {
               {imageOption === 'upload' && (
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-indigo-500 cursor-pointer transition-colors space-y-2 bg-slate-50/50"
+                  className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-500 cursor-pointer transition-colors space-y-2 bg-slate-50/50"
                 >
                   <input
                     type="file"
@@ -678,7 +678,7 @@ export default function Report() {
               {imageOption === 'camera' && (
                 <div 
                   onClick={() => cameraInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-indigo-500 cursor-pointer transition-colors space-y-2 bg-slate-50/50"
+                  className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-500 cursor-pointer transition-colors space-y-2 bg-slate-50/50"
                 >
                   <input
                     type="file"
@@ -714,7 +714,7 @@ export default function Report() {
                   placeholder="28.7041"
                   className="w-full h-11 px-4 text-sm bg-slate-100 text-slate-500 border border-slate-200 rounded-xl cursor-not-allowed outline-none font-mono"
                 />
-                {errors.latitude && <span className="text-xs font-medium text-rose-600">{errors.latitude.message}</span>}
+                {errors.latitude && <span className="text-xs font-medium text-red-600">{errors.latitude.message}</span>}
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Longitude *</label>
@@ -732,12 +732,12 @@ export default function Report() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
+              className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
               id="btn-report-submit"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2 text-slate-100">
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin text-teal-500" />
                   <span>Submitting ({uploadProgress !== null ? `${uploadProgress}%` : 'Triage classification...'})</span>
                 </div>
               ) : (
@@ -755,17 +755,17 @@ export default function Report() {
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-indigo-600" />
+                <MapPin className="w-5 h-5 text-emerald-600" />
                 Incident Geotargeting
               </h3>
               <button
                 type="button"
                 onClick={handleGPSDetect}
                 disabled={gpsLoading}
-                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-all"
+                className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-all"
                 title="Detect GPS Position"
               >
-                <RefreshCw className={`w-4 h-4 ${gpsLoading ? 'animate-spin text-indigo-600' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${gpsLoading ? 'animate-spin text-emerald-600' : ''}`} />
               </button>
             </div>
             
@@ -779,7 +779,7 @@ export default function Report() {
               <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full h-10 px-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150 cursor-pointer text-slate-700"
+                className="w-full h-10 px-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150 cursor-pointer text-slate-700"
               >
                 {INDIAN_CITIES.map(c => (
                   <option key={c.name} value={c.name}>{c.name}</option>

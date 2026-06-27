@@ -37,7 +37,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center p-4 bg-gradient-to-tr from-indigo-50/40 via-white to-slate-50/30" id="signup-view">
+    <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center p-4 bg-gradient-to-tr from-emerald-50/40 via-white to-slate-50/30" id="signup-view">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -46,7 +46,7 @@ export default function Signup() {
       >
         {/* Title */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 mb-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-100 mb-2">
             <AlertTriangle className="w-6 h-6" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Create your Account</h2>
@@ -54,7 +54,7 @@ export default function Signup() {
         </div>
 
         {serverError && (
-          <div className="p-4 bg-rose-50 border border-rose-100 text-rose-700 text-sm rounded-xl" id="signup-server-error">
+          <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl" id="signup-server-error">
             {serverError}
           </div>
         )}
@@ -71,11 +71,11 @@ export default function Signup() {
                 type="text"
                 {...register('name', { required: 'Name is required' })}
                 placeholder="Jane Doe"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.name && (
-              <span className="text-xs font-medium text-rose-600">{errors.name.message}</span>
+              <span className="text-xs font-medium text-red-600">{errors.name.message}</span>
             )}
           </div>
 
@@ -95,11 +95,11 @@ export default function Signup() {
                   }
                 })}
                 placeholder="you@example.com"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.email && (
-              <span className="text-xs font-medium text-rose-600">{errors.email.message}</span>
+              <span className="text-xs font-medium text-red-600">{errors.email.message}</span>
             )}
           </div>
 
@@ -119,11 +119,11 @@ export default function Signup() {
                   }
                 })}
                 placeholder="••••••••"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.password && (
-              <span className="text-xs font-medium text-rose-600">{errors.password.message}</span>
+              <span className="text-xs font-medium text-red-600">{errors.password.message}</span>
             )}
           </div>
 
@@ -140,18 +140,18 @@ export default function Signup() {
                   validate: (value) => value === password || 'Passwords do not match'
                 })}
                 placeholder="••••••••"
-                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150"
+                className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
               />
             </div>
             {errors.confirmPassword && (
-              <span className="text-xs font-medium text-rose-600">{errors.confirmPassword.message}</span>
+              <span className="text-xs font-medium text-red-600">{errors.confirmPassword.message}</span>
             )}
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer"
+            className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer"
             id="btn-signup-submit"
           >
             {submitting ? (
@@ -199,7 +199,7 @@ export default function Signup() {
         {/* Toggle sign up */}
         <p className="text-center text-sm text-slate-500">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500" id="link-to-login">
+          <Link to="/login" className="font-semibold text-emerald-600 hover:text-emerald-500" id="link-to-login">
             Sign In
           </Link>
         </p>

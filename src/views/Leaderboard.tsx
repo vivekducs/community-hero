@@ -147,23 +147,23 @@ export default function Leaderboard() {
     switch (rank) {
       case 1:
         return {
-          bg: 'bg-amber-50 border-amber-200 text-amber-600',
-          text: 'text-amber-800',
-          ring: 'ring-amber-100',
+          bg: 'bg-emerald-600 border-emerald-500 text-white',
+          text: 'text-white',
+          ring: 'ring-emerald-200',
           height: 'h-48'
         };
       case 2:
         return {
-          bg: 'bg-slate-50 border-slate-200 text-slate-500',
+          bg: 'bg-[#d1d5db]/30 border-[#d1d5db]/50 text-slate-700',
           text: 'text-slate-800',
-          ring: 'ring-slate-100',
+          ring: 'ring-[#d1d5db]/20',
           height: 'h-40'
         };
       default:
         return {
-          bg: 'bg-amber-50/40 border-amber-200/50 text-amber-700/80',
-          text: 'text-amber-900/80',
-          ring: 'ring-amber-50',
+          bg: 'bg-[#9ca3af]/20 border-[#9ca3af]/40 text-slate-700',
+          text: 'text-slate-800',
+          ring: 'ring-[#9ca3af]/10',
           height: 'h-36'
         };
     }
@@ -175,8 +175,8 @@ export default function Leaderboard() {
       {/* Page Title Header */}
       <section className="flex flex-col md:flex-row justify-between md:items-center gap-4" id="leaderboard-header">
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-indigo-500" />
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 text-emerald-500" />
             Civic Honor & Gamification
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Community Honor Roll</h1>
@@ -215,7 +215,7 @@ export default function Leaderboard() {
                   onClick={() => setActiveType(tab.type as any)}
                   className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                     activeType === tab.type 
-                      ? 'bg-white text-indigo-600 shadow-sm' 
+                      ? 'bg-white text-emerald-600 shadow-sm' 
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -254,9 +254,9 @@ export default function Leaderboard() {
                     <p className="font-mono text-[10px] text-slate-400 mt-0.5">{podium[1].score} pts</p>
                   </div>
                   <div className={`w-full ${getPodiumColor(2).height} ${getPodiumColor(2).bg} border rounded-t-2xl shadow-sm flex flex-col items-center justify-center relative p-3 text-center`}>
-                    <span className="absolute -top-4 w-8 h-8 rounded-full bg-white ring-4 ring-slate-100 flex items-center justify-center font-black text-xs text-slate-600 border border-slate-200 shadow-md">2</span>
-                    <Trophy className="w-7 h-7 mt-2 opacity-90" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mt-2 block">Silver medal</span>
+                    <span className="absolute -top-4 w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-xs border-2 border-[#d1d5db] shadow-md" style={{ color: '#d1d5db' }}>2</span>
+                    <Trophy className="w-7 h-7 mt-2" style={{ color: '#d1d5db' }} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider mt-2 block" style={{ color: '#d1d5db' }}>Silver</span>
                   </div>
                 </div>
               )}
@@ -272,9 +272,9 @@ export default function Leaderboard() {
                     <p className="font-mono text-xs text-amber-600 font-bold mt-0.5">{podium[0].score} pts</p>
                   </div>
                   <div className={`w-full ${getPodiumColor(1).height} ${getPodiumColor(1).bg} border rounded-t-3xl shadow-lg flex flex-col items-center justify-center relative p-4 text-center ring-4 ${getPodiumColor(1).ring}`}>
-                    <span className="absolute -top-5 w-10 h-10 rounded-full bg-white ring-4 ring-amber-100 flex items-center justify-center font-black text-sm text-amber-600 border border-amber-300 shadow-md">1</span>
-                    <Trophy className="w-9 h-9 mt-2 text-amber-500 animate-bounce" />
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 mt-2 block">Gold Honor</span>
+                    <span className="absolute -top-5 w-10 h-10 rounded-full bg-white flex items-center justify-center font-black text-sm border-2 border-[#fbbf24] shadow-md" style={{ color: '#fbbf24' }}>1</span>
+                    <Trophy className="w-9 h-9 mt-2 animate-bounce" style={{ color: '#fbbf24' }} />
+                    <span className="text-[10px] font-black uppercase tracking-wider text-white mt-2 block">Gold Honor</span>
                   </div>
                 </div>
               )}
@@ -287,9 +287,9 @@ export default function Leaderboard() {
                     <p className="font-mono text-[10px] text-slate-400 mt-0.5">{podium[2].score} pts</p>
                   </div>
                   <div className={`w-full ${getPodiumColor(3).height} ${getPodiumColor(3).bg} border rounded-t-2xl shadow-sm flex flex-col items-center justify-center relative p-3 text-center`}>
-                    <span className="absolute -top-4 w-8 h-8 rounded-full bg-white ring-4 ring-amber-50 flex items-center justify-center font-black text-xs text-amber-700/80 border border-amber-200 shadow-md">3</span>
-                    <Trophy className="w-6 h-6 mt-2 opacity-90" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700/70 mt-2 block">Bronze medal</span>
+                    <span className="absolute -top-4 w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-xs border-2 border-[#9ca3af] shadow-md" style={{ color: '#9ca3af' }}>3</span>
+                    <Trophy className="w-6 h-6 mt-2" style={{ color: '#9ca3af' }} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider mt-2 block" style={{ color: '#9ca3af' }}>Bronze</span>
                   </div>
                 </div>
               )}
@@ -300,7 +300,7 @@ export default function Leaderboard() {
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" id="leaderboard-table-container">
             {loading ? (
               <div className="p-16 text-center text-slate-400 text-xs">
-                <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-600 mb-2" />
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
                 Aggregating ledger data...
               </div>
             ) : entries.length === 0 ? (
@@ -334,8 +334,8 @@ export default function Leaderboard() {
                             <div>
                               <h4 className="font-bold text-slate-900">{entry.username || entry.department_name}</h4>
                               {entry.badge_icon && (
-                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded mt-1">
-                                  <Award className="w-3 h-3 text-indigo-500" /> {entry.badge_icon}
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded mt-1">
+                                  <Award className="w-3 h-3 text-emerald-500" /> {entry.badge_icon}
                                 </span>
                               )}
                             </div>
@@ -355,7 +355,7 @@ export default function Leaderboard() {
                           </td>
                         )}
                         {activeType === 'fastest_departments' && (
-                          <td className="py-4 px-4 font-mono font-bold text-indigo-600">
+                          <td className="py-4 px-4 font-mono font-bold text-emerald-600">
                             {entry.avg_resolution_time}
                           </td>
                         )}
@@ -375,7 +375,7 @@ export default function Leaderboard() {
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5" id="user-points-panel">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                <Award className="w-5 h-5 text-indigo-600" />
+                <Award className="w-5 h-5 text-emerald-600" />
                 Your Sentinel Score
               </h3>
               <p className="text-xs text-slate-400 mt-1">Earn points to unlock high credibility tiers and custom neighborhood medals.</p>
@@ -389,11 +389,11 @@ export default function Leaderboard() {
             ) : pointsBreakdown ? (
               <div className="space-y-6">
                 {/* Large points layout */}
-                <div className="bg-indigo-600 text-white rounded-2xl p-6 text-center space-y-2 relative overflow-hidden shadow-lg shadow-indigo-100">
+                <div className="bg-emerald-600 text-white rounded-2xl p-6 text-center space-y-2 relative overflow-hidden shadow-lg shadow-emerald-100">
                   <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_30%,#FFF_0%,transparent_50%)]"></div>
-                  <p className="text-[10px] uppercase font-black tracking-widest text-indigo-200">Total Accumulated Score</p>
+                  <p className="text-[10px] uppercase font-black tracking-widest text-emerald-200">Total Accumulated Score</p>
                   <h2 className="text-4xl font-black font-mono tracking-tight">{pointsBreakdown.total_points}</h2>
-                  <p className="text-xs text-indigo-100 font-semibold">{user.tier || 'New'} Sentinel Tier</p>
+                  <p className="text-xs text-emerald-100 font-semibold">{user.tier || 'New'} Sentinel Tier</p>
                 </div>
 
                 {/* Progress bar to next tier */}
@@ -404,7 +404,7 @@ export default function Leaderboard() {
                   </div>
                   <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500"
                       style={{ width: `${Math.min(100, (pointsBreakdown.total_points / 50) * 100)}%` }}
                     ></div>
                   </div>
@@ -415,9 +415,9 @@ export default function Leaderboard() {
                   <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Score Breakdown</h4>
                   
                   {[
-                    { label: 'Reports Filed (+5 pts each)', count: user.total_issues_reported, value: pointsBreakdown.issues, icon: ThumbsUp, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+                    { label: 'Reports Filed (+5 pts each)', count: user.total_issues_reported, value: pointsBreakdown.issues, icon: ThumbsUp, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
                     { label: 'Verifications Sent (+1 pt each)', count: pointsBreakdown.verifications / 1, value: pointsBreakdown.verifications, icon: ShieldCheck, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-                    { label: 'Confirmed Resolutions (+10 pts each)', count: pointsBreakdown.resolutions / 10, value: pointsBreakdown.resolutions, icon: CheckCircle, color: 'text-rose-600 bg-rose-50 border-rose-100' }
+                    { label: 'Confirmed Resolutions (+10 pts each)', count: pointsBreakdown.resolutions / 10, value: pointsBreakdown.resolutions, icon: CheckCircle, color: 'text-red-600 bg-red-50 border-red-100' }
                   ].map((item, idx) => (
                     <div key={idx} className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-xs">
                       <div className="flex items-center gap-3">
@@ -441,7 +441,7 @@ export default function Leaderboard() {
 
           {/* Gamification Guide card */}
           <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-xl space-y-4" id="badges-unlocked-panel">
-            <h3 className="text-sm font-bold flex items-center gap-1.5 text-indigo-400">
+            <h3 className="text-sm font-bold flex items-center gap-1.5 text-emerald-400">
               <Sparkles className="w-4 h-4" />
               Unlockable Honor Medals
             </h3>
@@ -462,7 +462,7 @@ export default function Leaderboard() {
                     <h5 className="font-bold text-slate-200">{badge.name}</h5>
                     <p className="text-[10px] text-slate-400 leading-normal mt-0.5">{badge.desc}</p>
                   </div>
-                  <span className="text-[9px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-400/20 px-2 py-0.5 rounded uppercase tracking-wider shrink-0">{badge.criteria}</span>
+                  <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-400/20 px-2 py-0.5 rounded uppercase tracking-wider shrink-0">{badge.criteria}</span>
                 </div>
               ))}
             </div>

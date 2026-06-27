@@ -166,7 +166,7 @@ export default function Admin() {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md bg-white p-8 rounded-2xl border border-slate-100 shadow-xl text-center space-y-5"
         >
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 shadow-md">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-red-50 border border-red-100 text-red-600 shadow-md">
             <Lock className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-bold text-slate-900">Municipal Access Denied</h2>
@@ -174,7 +174,7 @@ export default function Admin() {
             This portal is reserved exclusively for registered municipal authority accounts, emergency responders, and verified public administrators. If you represent a city department, please contact the CityMind administrator.
           </p>
           <div className="pt-2">
-            <Link to="/" className="inline-flex h-11 items-center justify-center px-6 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all duration-150 shadow-md">
+            <Link to="/" className="inline-flex h-11 items-center justify-center px-6 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all duration-150 shadow-md">
               Return to Citizen Portal
             </Link>
           </div>
@@ -413,7 +413,7 @@ export default function Admin() {
   const getSeverityBadge = (sev: string) => {
     switch (sev) {
       case 'critical':
-        return <span className="px-2.5 py-1 text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-100 rounded-lg uppercase tracking-wider">Critical</span>;
+        return <span className="px-2.5 py-1 text-[10px] font-black text-red-700 bg-red-50 border border-red-100 rounded-lg uppercase tracking-wider">Critical</span>;
       case 'high':
         return <span className="px-2.5 py-1 text-[10px] font-bold text-orange-700 bg-orange-50 border border-orange-100 rounded-lg uppercase tracking-wider">High</span>;
       case 'medium':
@@ -433,7 +433,7 @@ export default function Admin() {
         return <span className="px-3 py-1 text-[10px] font-extrabold text-blue-700 bg-blue-50 border border-blue-100 rounded-full uppercase tracking-wider">Investigating</span>;
       case 'Assigned':
       case 'assigned':
-        return <span className="px-3 py-1 text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full uppercase tracking-wider">Assigned</span>;
+        return <span className="px-3 py-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full uppercase tracking-wider">Assigned</span>;
       default:
         return <span className="px-3 py-1 text-[10px] font-extrabold text-slate-700 bg-slate-100 border border-slate-200 rounded-full uppercase tracking-wider">Reported</span>;
     }
@@ -455,7 +455,7 @@ export default function Admin() {
           </p>
         </div>
         <div className="flex items-center gap-4 bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 shadow-md">
-          <div className="w-10 h-10 rounded-full bg-indigo-600 font-black text-sm flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-emerald-600 font-black text-sm flex items-center justify-center">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <div className="text-xs">
@@ -468,19 +468,19 @@ export default function Admin() {
       {/* 2. Unified KPIs section updated real-time */}
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4" id="admin-realtime-metrics">
         {[
-          { label: 'Assigned Incidents', value: totalAssigned, icon: AlertTriangle, style: 'text-amber-600 bg-amber-50 border-amber-100' },
-          { label: 'In Repair Pipeline', value: inProgressCount, icon: Hammer, style: 'text-blue-600 bg-blue-50 border-blue-100' },
-          { label: 'Resolved This Month', value: resolvedThisMonth, icon: CheckCircle, style: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-          { label: 'Avg Resolution Time', value: `${avgResolutionDays} Days`, icon: Clock, style: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-          { label: 'Evaluation Rating', value: `${rating} / 5`, icon: Sparkles, style: 'text-rose-600 bg-rose-50 border-rose-100' }
+          { label: 'Assigned Incidents', value: totalAssigned, icon: AlertTriangle, style: 'text-amber-100 bg-emerald-700/50 border-emerald-500/50' },
+          { label: 'In Repair Pipeline', value: inProgressCount, icon: Hammer, style: 'text-blue-100 bg-emerald-700/50 border-emerald-500/50' },
+          { label: 'Resolved This Month', value: resolvedThisMonth, icon: CheckCircle, style: 'text-emerald-100 bg-emerald-700/50 border-emerald-500/50' },
+          { label: 'Avg Resolution Time', value: `${avgResolutionDays} Days`, icon: Clock, style: 'text-emerald-100 bg-emerald-700/50 border-emerald-500/50' },
+          { label: 'Evaluation Rating', value: `${rating} / 5`, icon: Sparkles, style: 'text-red-100 bg-emerald-700/50 border-emerald-500/50' }
         ].map((kpi, idx) => (
-          <div key={idx} className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
+          <div key={idx} className="p-5 bg-emerald-600 border border-emerald-500 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow text-white">
             <div className={`p-2.5 rounded-xl border ${kpi.style} shrink-0`}>
               <kpi.icon className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{kpi.label}</p>
-              <h3 className="text-lg font-black text-slate-900 mt-1">{kpi.value}</h3>
+              <p className="text-[10px] text-emerald-100 font-bold uppercase tracking-wider">{kpi.label}</p>
+              <h3 className="text-lg font-black text-white mt-1">{kpi.value}</h3>
             </div>
           </div>
         ))}
@@ -491,7 +491,7 @@ export default function Admin() {
         <button
           onClick={() => { setActiveTab('queue'); setCurrentPage(1); }}
           className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
-            activeTab === 'queue' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-800'
+            activeTab === 'queue' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -500,7 +500,7 @@ export default function Admin() {
         <button
           onClick={() => setActiveTab('staff')}
           className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
-            activeTab === 'staff' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-800'
+            activeTab === 'staff' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -527,7 +527,7 @@ export default function Admin() {
                   placeholder="Search by ID or title..."
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                  className="w-full h-11 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none"
+                  className="w-full h-11 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all outline-none"
                 />
               </div>
 
@@ -569,7 +569,7 @@ export default function Admin() {
                   onClick={() => setSortOrder(p => p === 'asc' ? 'desc' : 'asc')}
                   className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-100 transition-all cursor-pointer"
                 >
-                  Order: <span className="text-indigo-600 uppercase">{sortOrder}</span>
+                  Order: <span className="text-emerald-600 uppercase">{sortOrder}</span>
                 </button>
               </div>
             </div>
@@ -630,14 +630,14 @@ export default function Admin() {
                             </td>
                             <td className="py-4 px-4">
                               <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                                <CheckCircle className="w-4 h-4 text-indigo-500" />
+                                <CheckCircle className="w-4 h-4 text-emerald-500" />
                                 {issue.verification_percentage}% ({issue.confidence}% Confidence)
                               </div>
                             </td>
                             <td className="py-4 px-4 text-slate-600 font-semibold">
                               {assignedPerson ? (
-                                <div className="flex items-center gap-1.5 text-indigo-600">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                <div className="flex items-center gap-1.5 text-emerald-600">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                                   {assignedPerson.name}
                                 </div>
                               ) : (
@@ -734,7 +734,7 @@ export default function Admin() {
                             </div>
                           </td>
                           <td className="py-4 px-4 text-slate-600 font-semibold">{member.department}</td>
-                          <td className="py-4 px-4 font-bold text-indigo-600 text-sm">{member.active_assignments} active</td>
+                          <td className="py-4 px-4 font-bold text-emerald-600 text-sm">{member.active_assignments} active</td>
                           <td className="py-4 px-4 font-bold text-slate-700">{member.resolved_count} issues</td>
                           <td className="py-4 px-4">
                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${
@@ -746,7 +746,7 @@ export default function Admin() {
                           <td className="py-4 px-6 text-right">
                             <button
                               onClick={() => handleRemoveStaff(member.id)}
-                              className="h-8 w-8 rounded-lg text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer border border-transparent hover:border-rose-100"
+                              className="h-8 w-8 rounded-lg text-red-600 hover:bg-red-50 flex items-center justify-center transition-all cursor-pointer border border-transparent hover:border-red-100"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -776,7 +776,7 @@ export default function Admin() {
                       placeholder="e.g. Officer Sarah Jenkins"
                       value={newStaffName}
                       onChange={(e) => setNewStaffName(e.target.value)}
-                      className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
+                      className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition-all"
                     />
                   </div>
 
@@ -788,7 +788,7 @@ export default function Admin() {
                       placeholder="e.g. sarah.j@city.gov"
                       value={newStaffEmail}
                       onChange={(e) => setNewStaffEmail(e.target.value)}
-                      className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
+                      className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition-all"
                     />
                   </div>
 
@@ -800,7 +800,7 @@ export default function Admin() {
                       placeholder="e.g. Pothole Dispatcher"
                       value={newStaffRole}
                       onChange={(e) => setNewStaffRole(e.target.value)}
-                      className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
+                      className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition-all"
                     />
                   </div>
 
@@ -821,7 +821,7 @@ export default function Admin() {
                   <button
                     type="submit"
                     disabled={staffSubmitting}
-                    className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-indigo-100 disabled:opacity-50"
+                    className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-100 disabled:opacity-50"
                   >
                     <Plus className="w-4 h-4" />
                     Deploy Responder
@@ -847,7 +847,7 @@ export default function Admin() {
               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-md">
+                    <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-md">
                       ID: {selectedIssue.issue_id}
                     </span>
                     {getSeverityBadge(selectedIssue.severity)}
@@ -894,7 +894,7 @@ export default function Admin() {
                     <div className="grid grid-cols-2 gap-4">
                       {/* Before Photo */}
                       <div className="space-y-2">
-                        <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">Before (Incident Reported)</span>
+                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider block">Before (Incident Reported)</span>
                         <div className="aspect-video w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 shadow-inner relative flex items-center justify-center">
                           {selectedIssue.image_urls?.[0] ? (
                             <img src={selectedIssue.image_urls[0]} alt="Before repair" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -993,7 +993,7 @@ export default function Admin() {
                         <button
                           disabled={!assignedStaffId}
                           onClick={() => handleAssignStaff(assignedStaffId)}
-                          className="px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                          className="px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
                         >
                           Assign
                         </button>
@@ -1009,7 +1009,7 @@ export default function Admin() {
                         {selectedIssue.status === 'reported' && (
                           <button
                             onClick={() => handleStatusChange('investigating')}
-                            className="w-full h-10 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            className="w-full h-10 bg-transparent hover:bg-teal-50 border-2 border-teal-500 text-teal-600 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <Play className="w-3.5 h-3.5" /> Start Inspection
                           </button>
@@ -1017,7 +1017,7 @@ export default function Admin() {
                         {(selectedIssue.status === 'reported' || selectedIssue.status === 'investigating' || selectedIssue.status === 'Assigned' || selectedIssue.status === 'assigned') && (
                           <button
                             onClick={() => handleStatusChange('resolving')}
-                            className="w-full h-10 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            className="w-full h-10 bg-transparent hover:bg-teal-50 border-2 border-teal-500 text-teal-600 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <Hammer className="w-3.5 h-3.5" /> Dispatched to Repair
                           </button>
@@ -1042,7 +1042,7 @@ export default function Admin() {
                         placeholder="e.g. Dispatched asphalt truck. Crew expects completion by Thursday afternoon."
                         value={progressNote}
                         onChange={(e) => setProgressNote(e.target.value)}
-                        className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 resize-none transition-all"
+                        className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition-all"
                       ></textarea>
                       <button
                         type="submit"

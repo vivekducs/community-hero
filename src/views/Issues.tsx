@@ -24,39 +24,27 @@ import { toast, Toaster } from 'react-hot-toast';
 import L from 'leaflet';
 
 // Leaflet category marker configuration
-const getCategoryIcon = (category: string) => {
-  let emoji = '📌';
-  let color = 'bg-slate-500';
+const getStatusIcon = (status: string, category: string) => {
+  let emoji = '📍';
   switch (category) {
-    case 'Roads':
-      emoji = '🔧';
-      color = 'bg-rose-500';
-      break;
-    case 'Water':
-      emoji = '💧';
-      color = 'bg-blue-500';
-      break;
-    case 'Traffic':
-      emoji = '🚦';
-      color = 'bg-yellow-500';
-      break;
-    case 'Healthcare':
-      emoji = '🏥';
-      color = 'bg-emerald-500';
-      break;
-    case 'Education':
-      emoji = '🏫';
-      color = 'bg-purple-500';
-      break;
-    case 'Waste':
-      emoji = '🗑️';
-      color = 'bg-amber-700'; // Brown
-      break;
-    case 'Electricity':
-      emoji = '⚡';
-      color = 'bg-orange-500';
-      break;
+    case 'Roads': emoji = '🔧'; break;
+    case 'Water': emoji = '💧'; break;
+    case 'Traffic': emoji = '🚦'; break;
+    case 'Healthcare': emoji = '🏥'; break;
+    case 'Education': emoji = '🏫'; break;
+    case 'Waste': emoji = '🗑️'; break;
+    case 'Electricity': emoji = '⚡'; break;
   }
+
+  let color = 'bg-slate-500';
+  if (status === 'reported' || status === 'verifying' || status === 'verified') {
+    color = 'bg-emerald-500'; // pending
+  } else if (status === 'investigating' || status === 'resolving' || status === 'assigned' || status === 'Assigned') {
+    color = 'bg-blue-500'; // in-progress
+  } else if (status === 'resolved') {
+    color = 'bg-red-500'; // resolved
+  }
+
   return L.divIcon({
     html: `<div class="w-8 h-8 rounded-full ${color} text-white flex items-center justify-center text-sm shadow-md border-2 border-white ring-2 ring-slate-900/5 font-sans">${emoji}</div>`,
     className: 'custom-marker-icon',
@@ -183,7 +171,7 @@ export default function Issues() {
   const getSeverityStyle = (sev: string) => {
     switch (sev) {
       case 'critical':
-        return 'text-rose-700 bg-rose-50 border-rose-200';
+        return 'text-red-700 bg-red-50 border-red-200';
       case 'high':
         return 'text-orange-700 bg-orange-50 border-orange-200';
       case 'medium':
@@ -201,7 +189,7 @@ export default function Issues() {
       case 'resolving':
         return 'bg-amber-500 text-white';
       case 'assigned':
-        return 'bg-indigo-500 text-white';
+        return 'bg-emerald-500 text-white';
       default:
         return 'bg-slate-500 text-white';
     }
@@ -227,7 +215,7 @@ export default function Issues() {
             placeholder="Search incident logs by title, category, or subcategory..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:outline-none transition-all duration-150"
+            className="w-full h-11 pl-9 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none transition-all duration-150"
           />
         </div>
 
@@ -237,7 +225,7 @@ export default function Issues() {
           <select
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
-            className="h-11 px-3.5 text-xs font-bold bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-700 focus:outline-none cursor-pointer hover:bg-indigo-100/50 transition-all shrink-0"
+            className="h-11 px-3.5 text-xs font-bold bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 focus:outline-none cursor-pointer hover:bg-emerald-100/50 transition-all shrink-0"
           >
             <option value="All">All Cities</option>
             {INDIAN_CITIES.map(c => (
@@ -277,7 +265,7 @@ export default function Issues() {
           {/* Quick Add Report Button */}
           <Link 
             to="/report" 
-            className="h-11 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all shrink-0 cursor-pointer"
+            className="h-11 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Report
@@ -288,7 +276,7 @@ export default function Issues() {
             <button
               onClick={() => setActiveTab('list')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'list' ? 'bg-white shadow text-indigo-600' : 'text-slate-500'
+                activeTab === 'list' ? 'bg-white shadow text-emerald-600' : 'text-slate-500'
               }`}
             >
               List
@@ -296,7 +284,7 @@ export default function Issues() {
             <button
               onClick={() => setActiveTab('map')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'map' ? 'bg-white shadow text-indigo-600' : 'text-slate-500'
+                activeTab === 'map' ? 'bg-white shadow text-emerald-600' : 'text-slate-500'
               }`}
             >
               Map
@@ -352,7 +340,7 @@ export default function Issues() {
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 truncate">
+                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-emerald-600 transition-colors line-clamp-1 truncate">
                     {issue.title}
                   </h3>
                   
@@ -362,11 +350,11 @@ export default function Issues() {
 
                   <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium pt-1">
                     <span className="flex items-center gap-1 max-w-[120px] truncate">
-                      <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                      <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
                       <span>{issue.location.lat.toFixed(4)}°, {issue.location.lng.toFixed(4)}°</span>
                     </span>
                     <span className="flex items-center gap-1">
-                      <ThumbsUp className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                      <ThumbsUp className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                       <span className="text-slate-700 font-bold">{issue.upvotes || 0} confirmations</span>
                     </span>
                   </div>
@@ -376,7 +364,7 @@ export default function Issues() {
                 <Link 
                   to={`/issues/${issue.issue_id}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute right-3 top-3 p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block"
+                  className="absolute right-3 top-3 p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block"
                   title="View Detail Page"
                 >
                   <Eye className="w-4 h-4" />
@@ -404,41 +392,42 @@ export default function Issues() {
               <Marker 
                 key={issue.issue_id} 
                 position={[issue.location.lat, issue.location.lng]}
-                icon={getCategoryIcon(issue.category)}
+                icon={getStatusIcon(issue.status, issue.category)}
               >
-                <Popup>
-                  <div className="p-1 space-y-2.5 min-w-[210px] font-sans" id={`popup-${issue.issue_id}`}>
-                    <div className="flex justify-between items-center gap-2">
-                      <span className={`px-2 py-0.5 text-[8px] font-extrabold uppercase rounded border ${getSeverityStyle(issue.severity)}`}>
+                <Popup className="citymind-popup">
+                  <div className="min-w-[210px] font-sans overflow-hidden rounded-lg shadow-sm" id={`popup-${issue.issue_id}`}>
+                    <div className="bg-emerald-600 px-3 py-2 text-white flex justify-between items-center gap-2">
+                      <span className={`px-2 py-0.5 text-[8px] font-extrabold uppercase rounded bg-white/20 text-white`}>
                         {issue.severity}
                       </span>
-                      <span className={`px-2 py-0.5 text-[8px] font-extrabold text-white uppercase rounded ${getStatusColor(issue.status)}`}>
+                      <span className={`px-2 py-0.5 text-[8px] font-extrabold uppercase rounded bg-slate-900/40 text-white`}>
                         {issue.status}
                       </span>
                     </div>
-
-                    <h4 className="font-extrabold text-xs text-slate-900 leading-tight">{issue.title}</h4>
-                    
-                    {issue.image_urls?.[0] && (
-                      <div className="aspect-video w-full rounded-lg overflow-hidden border border-slate-100">
-                        <img 
-                          src={issue.image_urls[0]} 
-                          alt="Thumbnail" 
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
+                    <div className="p-3 space-y-2.5 bg-white">
+                      <h4 className="font-extrabold text-xs text-slate-900 leading-tight">{issue.title}</h4>
+                      
+                      {issue.image_urls?.[0] && (
+                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-slate-100">
+                          <img 
+                            src={issue.image_urls[0]} 
+                            alt="Thumbnail" 
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
 
                     <div className="flex justify-between items-center text-[10px] border-t border-slate-100 pt-2 font-medium">
                       <span className="text-slate-400">Category: <span className="font-semibold text-slate-700">{issue.category}</span></span>
                       <Link 
                         to={`/issues/${issue.issue_id}`}
-                        className="font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5"
+                        className="font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5"
                       >
                         Details
                         <ExternalLink className="w-3 h-3" />
                       </Link>
+                    </div>
                     </div>
                   </div>
                 </Popup>

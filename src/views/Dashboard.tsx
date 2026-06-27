@@ -36,12 +36,12 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
 
 const CATEGORY_COLORS: Record<string, string> = {
-  'Public Works': '#4f46e5',
-  'Water & Sanitation': '#0ea5e9',
-  'Traffic & Transit': '#f59e0b',
-  'Healthcare': '#ef4444',
-  'Electricity': '#eab308',
-  'Waste Management': '#8b5cf6',
+  'Public Works': '#059669', // emerald-600
+  'Water & Sanitation': '#0ea5e9', // sky-500
+  'Traffic & Transit': '#f59e0b', // amber-500
+  'Healthcare': '#ef4444', // red-500
+  'Electricity': '#eab308', // yellow-500
+  'Waste Management': '#14b8a6', // teal-500
   'Other': '#94a3b8'
 };
 
@@ -148,7 +148,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
         <p className="mt-3 text-xs font-semibold text-slate-500">Loading city analytics...</p>
       </div>
     );
@@ -170,7 +170,7 @@ export default function Dashboard() {
       {/* Numerical Stats Bar */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4" id="dashboard-status-stats">
         {[
-          { label: 'Total Issues Reported', count: totalIssues, icon: BarChart2, style: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800', trend: '+12% vs last month' },
+          { label: 'Total Issues Reported', count: totalIssues, icon: BarChart2, style: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800', trend: '+12% vs last month' },
           { label: 'Issues Resolved', count: resolvedIssues, icon: CheckCircle, style: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800', trend: `${resolvedRate}% resolution rate` },
           { label: 'Avg Resolution Time', count: '4.2d', icon: Clock, style: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 border-blue-100 dark:border-blue-800', trend: '-1.1d vs last month' },
           { label: 'Community Verified', count: verifiedIssues, icon: Wrench, style: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 border-amber-100 dark:border-amber-800', trend: `${verifiedRate}% verification rate` }
@@ -220,7 +220,8 @@ export default function Dashboard() {
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                  contentStyle={{ borderRadius: '12px', border: 'none', backgroundColor: '#0f172a', color: '#fff', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                  itemStyle={{ color: '#fff' }}
                 />
                 <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px' }}/>
               </PieChart>
@@ -237,11 +238,12 @@ export default function Dashboard() {
                 <YAxis tick={{fontSize: 12}} tickLine={false} axisLine={false} />
                 <Tooltip 
                   cursor={{fill: 'rgba(0,0,0,0.05)'}}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                  contentStyle={{ borderRadius: '12px', border: 'none', backgroundColor: '#0f172a', color: '#fff', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                  itemStyle={{ color: '#fff' }}
                 />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name] || '#94a3b8'} />
+                    <Cell key={`cell-${index}`} fill="#14b8a6" />
                   ))}
                 </Bar>
               </BarChart>
@@ -268,7 +270,7 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-500" />
+              <Sparkles className="w-5 h-5 text-emerald-500" />
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Predictive AI Insights</h2>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
@@ -279,7 +281,7 @@ export default function Dashboard() {
 
         {insightsLoading ? (
           <div className="p-12 text-center bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center">
-            <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+            <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
             <p className="text-xs text-slate-400 mt-2 font-medium">Computing pattern models...</p>
           </div>
         ) : insights.length === 0 ? (
@@ -300,7 +302,7 @@ export default function Dashboard() {
                 >
                   <div className="space-y-3">
                     <div className="flex justify-between items-start gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                         <Activity className="w-3 h-3" />
                         Pattern Prediction
                       </span>
@@ -316,8 +318,8 @@ export default function Dashboard() {
                   </div>
 
                   <div className="space-y-3 pt-4 border-t border-slate-50 dark:border-slate-700/50">
-                    <div className="bg-indigo-50/40 dark:bg-indigo-900/20 rounded-xl p-3 border border-indigo-50/30 dark:border-indigo-800/30">
-                      <span className="text-[10px] font-bold uppercase text-indigo-700 dark:text-indigo-400 block mb-1">
+                    <div className="bg-emerald-50/40 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-50/30 dark:border-emerald-800/30">
+                      <span className="text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-400 block mb-1">
                         Preventive Action Plan
                       </span>
                       <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
@@ -327,7 +329,7 @@ export default function Dashboard() {
 
                     <div className="flex flex-wrap items-center justify-between text-[10px] text-slate-400 font-semibold pt-1">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-indigo-400" />
+                        <Calendar className="w-3 h-3 text-emerald-400" />
                         {insight.forecast_period || 'Next 14 Days'}
                       </span>
                     </div>
