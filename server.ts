@@ -273,29 +273,31 @@ async function bootstrap() {
 
   // POST /api/issues
   app.post('/api/issues', async (req, res) => {
-    const { title, description, image_url, location, severity, created_by, created_by_name } = req.body;
+    const { title, description, image_url, location, severity, created_by, created_by_name, category: reqCategory, subcategory: reqSubcategory, department: reqDepartment } = req.body;
     if (!title || !location) {
       return res.status(400).json({ error: "Title and location are required" });
     }
 
     try {
       // AI Triage
-      let category = 'Roads';
-      let subcategory = 'Pothole';
-      let department = 'Department of Transportation';
+      let category = reqCategory || 'Roads';
+      let subcategory = reqSubcategory || 'Pothole';
+      let department = reqDepartment || 'Department of Transportation';
       let confidence = 85;
 
-      const insightsResponse = await fetch(`http://localhost:${PORT}/api/gemini/insights`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description: description || "No description provided" })
-      });
-      if (insightsResponse.ok) {
-        const data = await insightsResponse.json();
-        category = data.category || category;
-        subcategory = data.subcategory || subcategory;
-        department = data.department || department;
-        confidence = data.confidence || confidence;
+      if (!reqCategory) {
+        const insightsResponse = await fetch(`http://localhost:${PORT}/api/gemini/insights`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description: description || "No description provided" })
+        });
+        if (insightsResponse.ok) {
+          const data = await insightsResponse.json();
+          category = data.category || category;
+          subcategory = data.subcategory || subcategory;
+          department = data.department || department;
+          confidence = data.confidence || confidence;
+        }
       }
 
       const issue_id = 'issue_' + Math.random().toString(36).substr(2, 9);
@@ -2202,6 +2204,14 @@ async function bootstrap() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  // POST /api/notifications/send-fcm
+  app.post('/api/notifications/send-fcm', async (req, res) => {
+    const { user_id, title, body, icon_url, token } = req.body;
+    console.log(`[FCM Mock] Sending push notification to ${user_id || 'unknown'} (token: ${token || 'none'})`);
+    console.log(`[FCM Mock] Title: ${title}, Body: ${body}`);
+    res.json({ success: true, message: "Push notification queued successfully (mock)" });
+  });
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`[Community Hero Server] Running on http://localhost:${PORT}`);

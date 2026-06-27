@@ -9,6 +9,7 @@ import { useIssueStore } from '../store';
 import { db, storage } from '../firebaseConfig';
 import { Issue, LatLng } from '../types';
 import { apiFetch } from '../api';
+import { openDB } from 'idb';
 import { 
   AlertTriangle, 
   MapPin, 
@@ -18,11 +19,22 @@ import {
   Loader2, 
   CheckCircle,
   Upload,
-  RefreshCw
+  RefreshCw,
+  WifiOff
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast, Toaster } from 'react-hot-toast';
 import L from 'leaflet';
+
+async function getDB() {
+  return await openDB('citymind-db', 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains('issue-drafts')) {
+        db.createObjectStore('issue-drafts', { keyPath: 'id', autoIncrement: true });
+      }
+    }
+  });
+}
 
 // Fix for default marker icons in Leaflet with bundlers using public CDN
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -181,6 +193,31 @@ export default function Report() {
   // Run GPS auto detect on initial mount
   useEffect(() => {
     handleGPSDetect();
+
+    // Setup offline draft sync
+    const syncOfflineDrafts = async () => {
+      try {
+        const dbLocal = await getDB();
+        const drafts = await dbLocal.getAll('issue-drafts');
+        if (drafts.length > 0) {
+          toast.loading(`Syncing ${drafts.length} offline drafts...`, { id: 'sync' });
+          for (const draft of drafts) {
+            await apiFetch('/api/issues', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(draft.payload)
+            });
+            await dbLocal.delete('issue-drafts', draft.id);
+          }
+          toast.success("Offline drafts synced successfully!", { id: 'sync' });
+        }
+      } catch (err) {
+        console.error("Sync failed:", err);
+      }
+    };
+
+    window.addEventListener('online', syncOfflineDrafts);
+    return () => window.removeEventListener('online', syncOfflineDrafts);
   }, [setValue]);
 
   // Update map and form when selected city changes
@@ -359,19 +396,35 @@ export default function Report() {
 
       const departmentName = CIVIC_CATEGORIES.find(c => c.name === data.category)?.department || 'General Administration';
 
+      const payload = {
+        title: data.title,
+        description: data.description,
+        image_url: finalImageUrl,
+        location: selectedLocation,
+        severity: data.severity,
+        created_by: user.user_id,
+        created_by_name: user.name,
+        category: data.category,
+        subcategory: data.subcategory
+      };
+
+      if (!navigator.onLine) {
+        const dbLocal = await getDB();
+        await dbLocal.put('issue-drafts', {
+          payload,
+          created_at: Date.now()
+        });
+        toast.success("Saved as offline draft. Will sync when reconnected.", { id: 'upload-toast', duration: 4000 });
+        setTimeout(() => navigate('/dashboard'), 2000);
+        setIsSubmitting(false);
+        return;
+      }
+
       // 2. Post to backend
       const response = await apiFetch('/api/issues', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: data.title,
-          description: data.description,
-          image_url: finalImageUrl,
-          location: selectedLocation,
-          severity: data.severity,
-          created_by: user.user_id,
-          created_by_name: user.name
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {

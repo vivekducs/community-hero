@@ -2,6 +2,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getMessaging } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: (import.meta as any).env.VITE_REACT_APP_FIREBASE_API_KEY || "AIzaSyC8P6t5U8hsTK6V6LKUxKb1cNwAhqWd_KM",
@@ -18,4 +19,13 @@ const auth = getAuth(app);
 const db = getFirestore(app, "ai-studio-citymind-825e5b72-a31a-4304-83b7-64e929b5fded");
 const storage = getStorage(app);
 
-export { app, auth, db, storage };
+let messaging: any = null;
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  try {
+    messaging = getMessaging(app);
+  } catch (err) {
+    console.error("Failed to initialize messaging", err);
+  }
+}
+
+export { app, auth, db, storage, messaging };
