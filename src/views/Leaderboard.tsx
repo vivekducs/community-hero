@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -372,72 +373,83 @@ export default function Leaderboard() {
         <div className="lg:col-span-4 space-y-6">
           
           {/* User Score Breakdown panel */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 vibe-3d space-y-5" id="user-points-panel">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                <Award className="w-5 h-5 text-navy" />
-                Your Sentinel Score
-              </h3>
-              <p className="text-xs text-slate-400 mt-1">Earn points to unlock high credibility tiers and custom neighborhood medals.</p>
-            </div>
-
-            {loadingPoints ? (
-              <div className="animate-pulse space-y-3">
-                <div className="h-6 bg-slate-100 rounded w-1/2"></div>
-                <div className="h-12 bg-slate-100 rounded"></div>
+          {user ? (
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 vibe-3d space-y-5" id="user-points-panel">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                  <Award className="w-5 h-5 text-navy" />
+                  Your Sentinel Score
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">Earn points to unlock high credibility tiers and custom neighborhood medals.</p>
               </div>
-            ) : pointsBreakdown ? (
-              <div className="space-y-6">
-                {/* Large points layout */}
-                <div className="bg-navy text-white rounded-2xl p-6 text-center space-y-2 relative overflow-hidden shadow-lg shadow-navy/20">
-                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_30%,#FFF_0%,transparent_50%)]"></div>
-                  <p className="text-[10px] uppercase font-black tracking-widest text-saffron">Total Accumulated Score</p>
-                  <h2 className="text-4xl font-black font-mono tracking-tight">{pointsBreakdown.total_points}</h2>
-                  <p className="text-xs text-slate-200 font-semibold">{user.tier || 'New'} Sentinel Tier</p>
-                </div>
 
-                {/* Progress bar to next tier */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
-                    <span>Progress to Active Voice</span>
-                    <span>{pointsBreakdown.total_points} / 50 pts</span>
-                  </div>
-                  <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-navy to-saffron rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (pointsBreakdown.total_points / 50) * 100)}%` }}
-                    ></div>
-                  </div>
+              {loadingPoints ? (
+                <div className="animate-pulse space-y-3">
+                  <div className="h-6 bg-slate-100 rounded w-1/2"></div>
+                  <div className="h-12 bg-slate-100 rounded"></div>
                 </div>
+              ) : pointsBreakdown ? (
+                <div className="space-y-6">
+                  {/* Large points layout */}
+                  <div className="bg-navy text-white rounded-2xl p-6 text-center space-y-2 relative overflow-hidden shadow-lg shadow-navy/20">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_30%,#FFF_0%,transparent_50%)]"></div>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-saffron">Total Accumulated Score</p>
+                    <h2 className="text-4xl font-black font-mono tracking-tight">{pointsBreakdown.total_points}</h2>
+                    <p className="text-xs text-slate-200 font-semibold">{user.tier || 'New'} Sentinel Tier</p>
+                  </div>
 
-                {/* Ledgers detail */}
-                <div className="space-y-3">
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Score Breakdown</h4>
-                  
-                  {[
-                    { label: 'Reports Filed (+5 pts each)', count: user.total_issues_reported, value: pointsBreakdown.issues, icon: ThumbsUp, color: 'text-[#138808] bg-[#138808]/10 border-[#138808]/20' },
-                    { label: 'Verifications Sent (+1 pt each)', count: pointsBreakdown.verifications / 1, value: pointsBreakdown.verifications, icon: ShieldCheck, color: 'text-navy bg-navy/10 border border-navy/20' },
-                    { label: 'Confirmed Resolutions (+10 pts each)', count: pointsBreakdown.resolutions / 10, value: pointsBreakdown.resolutions, icon: CheckCircle, color: 'text-red-600 bg-red-50 border-red-100' }
-                  ].map((item, idx) => (
-                    <div key={idx} className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl border ${item.color}`}>
-                          <item.icon className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900">{item.label}</p>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{item.count} submitted</p>
-                        </div>
-                      </div>
-                      <span className="font-bold text-slate-900 font-mono text-sm">+{item.value}</span>
+                  {/* Progress bar to next tier */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
+                      <span>Progress to Active Voice</span>
+                      <span>{pointsBreakdown.total_points} / 50 pts</span>
                     </div>
-                  ))}
+                    <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-navy to-saffron rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, (pointsBreakdown.total_points / 50) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Ledgers detail */}
+                  <div className="space-y-3">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Score Breakdown</h4>
+                    
+                    {[
+                      { label: 'Reports Filed (+5 pts each)', count: user.total_issues_reported, value: pointsBreakdown.issues, icon: ThumbsUp, color: 'text-[#138808] bg-[#138808]/10 border-[#138808]/20' },
+                      { label: 'Verifications Sent (+1 pt each)', count: pointsBreakdown.verifications / 1, value: pointsBreakdown.verifications, icon: ShieldCheck, color: 'text-navy bg-navy/10 border border-navy/20' },
+                      { label: 'Confirmed Resolutions (+10 pts each)', count: pointsBreakdown.resolutions / 10, value: pointsBreakdown.resolutions, icon: CheckCircle, color: 'text-red-600 bg-red-50 border-red-100' }
+                    ].map((item, idx) => (
+                      <div key={idx} className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-xl border ${item.color}`}>
+                            <item.icon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900">{item.label}</p>
+                            <p className="text-[10px] text-slate-400 font-medium mt-0.5">{item.count} submitted</p>
+                          </div>
+                        </div>
+                        <span className="font-bold text-slate-900 font-mono text-sm">+{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-xs text-slate-400 italic">Failed to calculate sentinel score ledger.</p>
-            )}
-          </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">Failed to calculate sentinel score ledger.</p>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 vibe-3d space-y-5 text-center" id="user-points-login-cta">
+              <Award className="w-10 h-10 text-navy mx-auto mb-2" />
+              <h3 className="text-sm font-bold text-slate-900">Track Your Impact</h3>
+              <p className="text-xs text-slate-500 mt-1">Sign in to track your personal Sentinel Score, verify reports, and unlock neighbor medals.</p>
+              <Link to="/login" className="mt-4 inline-block w-full text-center px-4 py-2.5 text-xs font-bold text-white bg-[#003366] hover:bg-[#002244] rounded-xl shadow-sm transition-colors">
+                Sign In
+              </Link>
+            </div>
+          )}
 
           {/* Gamification Guide card */}
           <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-xl space-y-4" id="badges-unlocked-panel">

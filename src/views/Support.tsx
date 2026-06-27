@@ -217,7 +217,7 @@ export default function Support() {
               <div className="space-y-1">
                 <h4 className="text-[11px] font-bold text-slate-800 dark:text-slate-200">How do I verify duplicate reports?</h4>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal">
-                  Our system uses 80m GPS geohash matching. If a duplicate exists, it is marked automatically and you can vote on it to merge.
+                  Our system uses 100m GPS geohash matching. If a duplicate exists, it is marked automatically and you can vote on it to merge.
                 </p>
               </div>
 

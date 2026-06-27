@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AlertTriangle, Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getFriendlyErrorMessage } from '../utils/errors';
 
 export default function Signup() {
   const { signup, loginWithGoogle } = useAuth();
@@ -30,7 +31,7 @@ export default function Signup() {
       navigate('/');
     } catch (err: any) {
       console.error(err);
-      setServerError(err.message || 'Failed to create an account. Email might be in use.');
+      setServerError(getFriendlyErrorMessage(err));
     } finally {
       setSubmitting(false);
     }

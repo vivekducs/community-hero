@@ -906,8 +906,8 @@ async function bootstrap() {
         other.location.lat, other.location.lng
       );
 
-      // Must be same location (distance <= 80 meters)
-      if (dist <= 80) {
+      // Must be same location (distance <= 100 meters)
+      if (dist <= 100) {
         if (dist < minDistance) {
           minDistance = dist;
           bestMatch = other;

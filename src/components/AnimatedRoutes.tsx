@@ -52,41 +52,33 @@ export default function AnimatedRoutes() {
         <Route 
           path="/issues" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <AnimatedPage><Issues /></AnimatedPage>
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <AnimatedPage><Issues /></AnimatedPage>
+            </Layout>
           } 
         />
         <Route 
           path="/issues/:issueId" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <AnimatedPage><IssueDetail /></AnimatedPage>
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <AnimatedPage><IssueDetail /></AnimatedPage>
+            </Layout>
           } 
         />
         <Route 
           path="/dashboard" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <AnimatedPage><Dashboard /></AnimatedPage>
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <AnimatedPage><Dashboard /></AnimatedPage>
+            </Layout>
           } 
         />
         <Route 
           path="/leaderboard" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <AnimatedPage><Leaderboard /></AnimatedPage>
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <AnimatedPage><Leaderboard /></AnimatedPage>
+            </Layout>
           } 
         />
         <Route 

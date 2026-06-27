@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AlertTriangle, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getFriendlyErrorMessage } from '../utils/errors';
 
 export default function Login() {
   const { login, loginWithGoogle } = useAuth();
@@ -30,7 +31,7 @@ export default function Login() {
       navigate(from, { replace: true });
     } catch (err: any) {
       console.error(err);
-      setServerError(err.message || 'Incorrect email or password. Please try again.');
+      setServerError(getFriendlyErrorMessage(err));
     } finally {
       setSubmitting(false);
     }

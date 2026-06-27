@@ -25,6 +25,7 @@ import {
 import { toast, Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'motion/react';
 import { apiFetch } from '../api';
+import { getFriendlyErrorMessage } from '../utils/errors';
 
 interface Comment {
   comment_id: string;
@@ -203,9 +204,9 @@ export default function IssueDetail() {
       } else {
         toast.success("Verification updated successfully!");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Could not record vote. Reverting...");
+      toast.error("Could not record vote: " + getFriendlyErrorMessage(err));
       // Revert optimistic state
       setUserVote(prevVote);
       setIssue(prev => prev ? {
@@ -264,9 +265,9 @@ export default function IssueDetail() {
         throw new Error("Failed to post comment");
       }
       toast.success("Comment added!");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Could not post comment. Please retry.");
+      toast.error("Could not post comment: " + getFriendlyErrorMessage(err));
       // Rollback optimistic comment
       setComments(prev => prev.filter(c => c.comment_id !== mockCommentId));
       setNewComment(currentText);
@@ -354,9 +355,9 @@ export default function IssueDetail() {
       toast.success("Incident successfully reopened!");
       setReopenReason('');
       setReopenImage('');
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to reopen issue:", err);
-      toast.error("An error occurred while reopening the issue.");
+      toast.error("An error occurred while reopening the issue: " + getFriendlyErrorMessage(err));
     } finally {
       setIsReopening(false);
     }

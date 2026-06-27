@@ -10,6 +10,7 @@ import { db } from '../firebaseConfig';
 import { Issue, LatLng } from '../types';
 import { apiFetch } from '../api';
 import { openDB } from 'idb';
+import { getFriendlyErrorMessage } from '../utils/errors';
 import { 
   AlertTriangle, 
   MapPin, 
@@ -484,7 +485,7 @@ export default function Report() {
       return uploadResult.url;
     } catch (err: any) {
       console.error("Upload process failed:", err);
-      toast.error("Upload failed: " + err.message, { id: 'upload-toast' });
+      toast.error("Upload failed: " + getFriendlyErrorMessage(err), { id: 'upload-toast' });
       throw err;
     }
   };
@@ -583,7 +584,7 @@ export default function Report() {
 
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to upload image or submit issue.", { id: 'upload-toast' });
+      toast.error(getFriendlyErrorMessage(err), { id: 'upload-toast' });
     } finally {
       setIsSubmitting(false);
       setUploadProgress(null);
