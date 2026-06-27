@@ -474,7 +474,7 @@ export default function Admin() {
           { label: 'Avg Resolution Time', value: `${avgResolutionDays} Days`, icon: Clock, style: 'text-emerald-100 bg-emerald-700/50 border-emerald-500/50' },
           { label: 'Evaluation Rating', value: `${rating} / 5`, icon: Sparkles, style: 'text-red-100 bg-emerald-700/50 border-emerald-500/50' }
         ].map((kpi, idx) => (
-          <div key={idx} className="p-5 bg-emerald-600 border border-emerald-500 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow text-white">
+          <div key={idx} className="p-5 bg-emerald-600 border border-emerald-500 rounded-2xl flex items-center gap-4 text-white vibe-3d">
             <div className={`p-2.5 rounded-xl border ${kpi.style} shrink-0`}>
               <kpi.icon className="w-5 h-5" />
             </div>

@@ -145,7 +145,7 @@ export default function Layout({ children }: LayoutProps) {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-6 md:px-8 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors duration-300" id="header-container">
+      <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-6 md:px-8 border-b border-slate-200 dark:border-slate-800 vibe-glass transition-colors duration-300" id="header-container">
         <div className="flex items-center gap-3">
           <button 
             id="mobile-menu-toggle"

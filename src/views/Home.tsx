@@ -185,7 +185,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className={`flex flex-col bg-white rounded-2xl border shadow-sm overflow-hidden hover:shadow-md hover:scale-[1.02] transition-all duration-200 ${
+              className={`flex flex-col bg-white rounded-2xl border overflow-hidden vibe-3d ${
                 issue.status === 'resolved' ? 'border-l-4 border-l-green-500 border-slate-200' :
                 ['reported', 'investigating'].includes(issue.status) ? 'border-l-4 border-l-amber-500 border-slate-200' :
                 'border-slate-200'

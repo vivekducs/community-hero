@@ -180,7 +180,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="p-5 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm rounded-2xl flex flex-col gap-3"
+            className="p-5 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl flex flex-col gap-3 vibe-3d"
           >
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-xl border ${stat.style}`}>
@@ -201,7 +201,7 @@ export default function Dashboard() {
 
       {/* Charts Section */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 vibe-3d">
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-6">Issues by Category</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -229,7 +229,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 vibe-3d">
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-6">Issue Pipeline Status</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -253,7 +253,7 @@ export default function Dashboard() {
       </section>
 
       {/* Heatmap Section */}
-      <section className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[400px]">
+      <section className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl vibe-3d overflow-hidden flex flex-col h-[400px]">
         <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 z-10 relative">
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Issue Density Heatmap</h3>
@@ -298,7 +298,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: idx * 0.1 }}
-                  className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
+                  className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 vibe-3d p-6 flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-3">
                     <div className="flex justify-between items-start gap-2">

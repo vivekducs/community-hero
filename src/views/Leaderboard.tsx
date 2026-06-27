@@ -202,7 +202,7 @@ export default function Leaderboard() {
         <div className="lg:col-span-8 space-y-8">
           
           {/* Controls Bar: Tabs and Zone selector */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center" id="leaderboard-controls">
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 vibe-3d flex flex-col sm:flex-row gap-4 justify-between items-center" id="leaderboard-controls">
             {/* Tab selection */}
             <div className="flex bg-slate-50 p-1 rounded-xl w-full sm:w-auto">
               {[
@@ -297,7 +297,7 @@ export default function Leaderboard() {
           )}
 
           {/* List display for ranks 4 to 20 */}
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" id="leaderboard-table-container">
+          <div className="bg-white rounded-3xl border border-slate-100 vibe-3d overflow-hidden" id="leaderboard-table-container">
             {loading ? (
               <div className="p-16 text-center text-slate-400 text-xs">
                 <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
@@ -372,7 +372,7 @@ export default function Leaderboard() {
         <div className="lg:col-span-4 space-y-6">
           
           {/* User Score Breakdown panel */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5" id="user-points-panel">
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 vibe-3d space-y-5" id="user-points-panel">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
                 <Award className="w-5 h-5 text-emerald-600" />

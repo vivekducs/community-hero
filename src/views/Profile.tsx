@@ -121,7 +121,7 @@ export default function Profile() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Stats Cards */}
         <div className="md:col-span-1 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 vibe-3d space-y-4">
             <h3 className="text-base font-bold text-slate-900">Your Civic Activity</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2.5 border-b border-slate-50 text-sm">
@@ -145,7 +145,7 @@ export default function Profile() {
 
         {/* Right Badge Collection */}
         <div className="md:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 vibe-3d space-y-4">
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
               <Award className="w-5 h-5 text-emerald-600" />
               Unlocked Badges
@@ -156,7 +156,7 @@ export default function Profile() {
               {mockBadges.map((badge) => {
                 const IconComp = badge.icon;
                 return (
-                  <div key={badge.name} className={`p-5 rounded-2xl border text-center space-y-3 flex flex-col items-center justify-center ${badge.color}`}>
+                  <div key={badge.name} className={`p-5 rounded-2xl border text-center space-y-3 flex flex-col items-center justify-center vibe-3d ${badge.color}`}>
                     <div className="p-3 bg-white rounded-full border border-inherit shadow-sm">
                       <IconComp className="w-5 h-5" />
                     </div>
