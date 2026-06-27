@@ -6,6 +6,7 @@ import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { useIssueStore } from '../store';
 import { Issue } from '../types';
+import EmptyState from '../components/EmptyState';
 import { 
   Search, 
   MapPin, 
@@ -106,6 +107,14 @@ export default function Issues() {
   const [activeTab, setActiveTab] = useState<'list' | 'map'>('list'); // Mobile toggle
   const [mapCenter, setMapCenter] = useState<[number, number]>([28.7041, 77.1025]); // Default to Delhi NCR
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All');
+    setSelectedStatus('All');
+    setSelectedCity('All');
+    navigate('/issues', { replace: true });
+  };
 
   // 1. Subscribe to real-time changes of the Firestore Issues collection
   useEffect(() => {
@@ -332,11 +341,13 @@ export default function Issues() {
               </div>
             ))
           ) : filteredIssues.length === 0 ? (
-            <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-3">
-              <AlertTriangle className="w-10 h-10 text-slate-300 mx-auto" />
-              <p className="text-sm font-bold text-slate-600">No reported incidents match filters.</p>
-              <p className="text-xs text-slate-400">Broaden your search terms or verify another region.</p>
-            </div>
+            <EmptyState 
+              city={selectedCity} 
+              category={selectedCategory} 
+              status={selectedStatus} 
+              searchQuery={searchQuery}
+              onClearFilters={handleClearFilters}
+            />
           ) : (
             filteredIssues.map((issue) => (
               <div
