@@ -118,7 +118,7 @@ async function bootstrap() {
         await fs.promises.writeFile(filePath, buffer);
         
         const fileUrl = `/uploads/${filename}`;
-        return res.json({ url: fileUrl });
+        return res.json({ url: image });
       }
 
       return res.status(400).json({ error: "Unsupported upload format (must be base64 data-uri)" });
