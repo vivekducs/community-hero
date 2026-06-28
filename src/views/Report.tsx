@@ -23,7 +23,9 @@ import {
   RefreshCw,
   WifiOff,
   XCircle,
-  EyeOff
+  EyeOff,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast, Toaster } from 'react-hot-toast';
@@ -209,6 +211,89 @@ export default function Report() {
   const watchedCategory = watch('category');
   const watchedTitle = watch('title');
   const watchedDescription = watch('description');
+
+  // Speech Recognition State
+  const [isListeningTitle, setIsListeningTitle] = useState(false);
+  const [isListeningDesc, setIsListeningDesc] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  const toggleListening = (field: 'title' | 'description') => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast.error("Web Speech API is not supported in this browser. Try Chrome, Safari, or Edge.", { id: 'speech-toast' });
+      return;
+    }
+
+    if ((field === 'title' && isListeningTitle) || (field === 'description' && isListeningDesc)) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      return;
+    }
+
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+
+    try {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = 'en-US';
+
+      rec.onstart = () => {
+        if (field === 'title') {
+          setIsListeningTitle(true);
+          setIsListeningDesc(false);
+        } else {
+          setIsListeningDesc(true);
+          setIsListeningTitle(false);
+        }
+        toast.success(`Listening... Speak into your microphone`, { id: 'speech-toast', duration: 4000 });
+      };
+
+      rec.onerror = (event: any) => {
+        console.error("Speech recognition error", event.error);
+        if (event.error === 'not-allowed') {
+          toast.error("Microphone permission denied. Please enable microphone access.", { id: 'speech-toast' });
+        } else {
+          toast.error(`Speech recognition error: ${event.error}`, { id: 'speech-toast' });
+        }
+        setIsListeningTitle(false);
+        setIsListeningDesc(false);
+      };
+
+      rec.onend = () => {
+        setIsListeningTitle(false);
+        setIsListeningDesc(false);
+      };
+
+      rec.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          const currentVal = field === 'title' ? watchedTitle : watchedDescription;
+          const newVal = currentVal ? `${currentVal.trim()} ${transcript}` : transcript;
+          setValue(field, newVal);
+          toast.success("Transcribed successfully!", { id: 'speech-toast' });
+        }
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
+    } catch (err) {
+      console.error("Failed to start speech recognition", err);
+      toast.error("Failed to start microphone listener.", { id: 'speech-toast' });
+    }
+  };
 
   // Trigger GPS auto-detect
   const handleGPSDetect = (isInitial: boolean = false) => {
@@ -681,27 +766,55 @@ export default function Report() {
             {/* Title */}
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Incident Title *</label>
-              <input
-                type="text"
-                {...register('title', { 
-                  required: 'Title is required', 
-                  minLength: { value: 10, message: 'Minimum 10 characters required' } 
-                })}
-                placeholder="e.g. Broken water pipeline flooding main lane"
-                className="w-full h-11 px-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/10 focus:border-navy focus:outline-none transition-all duration-150"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  {...register('title', { 
+                    required: 'Title is required', 
+                    minLength: { value: 10, message: 'Minimum 10 characters required' } 
+                  })}
+                  placeholder="e.g. Broken water pipeline flooding main lane"
+                  className="w-full h-11 pl-4 pr-12 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/10 focus:border-navy focus:outline-none transition-all duration-150"
+                />
+                <button
+                  type="button"
+                  onClick={() => toggleListening('title')}
+                  className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-150 cursor-pointer ${
+                    isListeningTitle 
+                      ? 'bg-red-500 text-white animate-pulse shadow-md hover:bg-red-600' 
+                      : 'text-slate-400 hover:text-navy hover:bg-slate-100'
+                  }`}
+                  title={isListeningTitle ? "Stop Listening" : "Dictate Title"}
+                >
+                  {isListeningTitle ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
+              </div>
               {errors.title && <span className="text-xs font-medium text-red-600">{errors.title.message}</span>}
             </div>
 
             {/* Description */}
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Incident Details (Optional)</label>
-              <textarea
-                rows={4}
-                {...register('description')}
-                placeholder="Include size, duration, or any potential road hazards to assist responding public service units..."
-                className="w-full p-4 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/10 focus:border-navy focus:outline-none transition-all duration-150 resize-none"
-              ></textarea>
+              <div className="relative">
+                <textarea
+                  rows={4}
+                  {...register('description')}
+                  placeholder="Include size, duration, or any potential road hazards to assist responding public service units..."
+                  className="w-full pt-4 pb-4 pl-4 pr-12 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/10 focus:border-navy focus:outline-none transition-all duration-150 resize-none"
+                ></textarea>
+                <button
+                  type="button"
+                  onClick={() => toggleListening('description')}
+                  className={`absolute right-2.5 top-3 p-2 rounded-lg transition-all duration-150 cursor-pointer ${
+                    isListeningDesc 
+                      ? 'bg-red-500 text-white animate-pulse shadow-md hover:bg-red-600' 
+                      : 'text-slate-400 hover:text-navy hover:bg-slate-100'
+                  }`}
+                  title={isListeningDesc ? "Stop Listening" : "Dictate Details"}
+                >
+                  {isListeningDesc ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             {/* AI Assistant Button */}
