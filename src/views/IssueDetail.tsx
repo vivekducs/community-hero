@@ -764,9 +764,9 @@ export default function IssueDetail() {
         </div>
 
         {/* Right 1 Column: Sentinel Verification Action Console */}
-        <div className="space-y-8">
+        <div className="space-y-8 lg:sticky lg:top-24 h-fit">
           
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6 sticky top-24">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-navy" />
               Citizen Verification

@@ -737,6 +737,32 @@ async function bootstrap() {
         verification_percentage
       });
 
+      // Notify the issue creator (citizen) when someone votes/confirms/disputes their issue
+      if (issueData.created_by && issueData.created_by !== user_id) {
+        const creatorNotifId = 'notif_' + Math.random().toString(36).substr(2, 9);
+        await setDoc(doc(db, 'notifications', creatorNotifId), {
+          notification_id: creatorNotifId,
+          issue_id: issueId,
+          user_id: issueData.created_by,
+          message: `Your reported issue "${issueData.title}" was ${vote === 'upvote' ? 'confirmed' : 'rejected/disputed'} by another citizen.`,
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      // Notify the assigned officer if there is one
+      if (issueData.assigned_to_person && issueData.assigned_to_person !== user_id) {
+        const officerNotifId = 'notif_' + Math.random().toString(36).substr(2, 9);
+        await setDoc(doc(db, 'notifications', officerNotifId), {
+          notification_id: officerNotifId,
+          issue_id: issueId,
+          user_id: issueData.assigned_to_person,
+          message: `The issue "${issueData.title}" assigned to you has received a community ${vote === 'upvote' ? 'confirmation' : 'dispute/rejection'}.`,
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+      }
+
       res.json({ upvotes, downvotes, verification_percentage });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -878,6 +904,15 @@ async function bootstrap() {
           }
 
           Available Categories are strictly: "Roads", "Water", "Electricity", "Waste", "Traffic", "Healthcare", "Education".
+          Based on the determined category, map the recommended_department EXACTLY as follows:
+          - "Roads" -> "Department of Transportation"
+          - "Water" -> "Municipal Water & Sewage Board"
+          - "Electricity" -> "Power & Streetlight Authority"
+          - "Waste" -> "Sanitation & Cleanliness Commission"
+          - "Traffic" -> "Metropolitan Traffic Control"
+          - "Healthcare" -> "Municipal Health Services"
+          - "Education" -> "Public Education Board"
+
           Select severity strictly from: "low", "medium", "high", "critical".
         `;
 
@@ -916,6 +951,31 @@ async function bootstrap() {
       } catch (e) {
         console.error("Agent 1 Gemini classification failed, using deterministic fallback:", e);
       }
+    }
+
+    // Ensure strict category and department alignment to prevent agent assignment errors
+    const catLower = category.toLowerCase();
+    if (catLower.includes('water')) {
+      category = 'Water';
+      department = 'Municipal Water & Sewage Board';
+    } else if (catLower.includes('road')) {
+      category = 'Roads';
+      department = 'Department of Transportation';
+    } else if (catLower.includes('elect')) {
+      category = 'Electricity';
+      department = 'Power & Streetlight Authority';
+    } else if (catLower.includes('waste')) {
+      category = 'Waste';
+      department = 'Sanitation & Cleanliness Commission';
+    } else if (catLower.includes('traffic')) {
+      category = 'Traffic';
+      department = 'Metropolitan Traffic Control';
+    } else if (catLower.includes('health')) {
+      category = 'Healthcare';
+      department = 'Municipal Health Services';
+    } else if (catLower.includes('educ')) {
+      category = 'Education';
+      department = 'Public Education Board';
     }
 
     const action = {
@@ -2095,6 +2155,100 @@ async function bootstrap() {
       const { type = 'monthly_reporters', zone, limit = 20 } = req.query;
       const limitVal = parseInt(String(limit), 10);
 
+      // Check if we need to seed mock users to populate the leaderboard
+      const usersColCheck = collection(db, 'users');
+      const checkSnap = await getDocs(usersColCheck);
+      if (checkSnap.size <= 1) {
+        console.log("Seeding mock users to Firestore to populate the leaderboard...");
+        const mockUsers = [
+          {
+            user_id: "mock_user_1",
+            email: "aarav.mehta@citymind.org",
+            name: "Aarav Mehta",
+            credibility_score: 95,
+            total_issues_reported: 18,
+            badges_earned: ["Problem Solver", "Road Warrior"],
+            is_authority: false,
+            zone: "Zone A",
+            created_at: new Date().toISOString()
+          },
+          {
+            user_id: "mock_user_2",
+            email: "ananya.iyer@citymind.org",
+            name: "Ananya Iyer",
+            credibility_score: 98,
+            total_issues_reported: 14,
+            badges_earned: ["Problem Solver", "Water Expert"],
+            is_authority: false,
+            zone: "Zone B",
+            created_at: new Date().toISOString()
+          },
+          {
+            user_id: "mock_user_3",
+            email: "karan.malhotra@citymind.org",
+            name: "Karan Malhotra",
+            credibility_score: 92,
+            total_issues_reported: 11,
+            badges_earned: ["Problem Solver"],
+            is_authority: false,
+            zone: "Zone C",
+            created_at: new Date().toISOString()
+          },
+          {
+            user_id: "mock_user_4",
+            email: "priya.sharma@citymind.org",
+            name: "Priya Sharma",
+            credibility_score: 100,
+            total_issues_reported: 8,
+            badges_earned: ["Problem Solver", "Community Champion"],
+            is_authority: false,
+            zone: "Zone A",
+            created_at: new Date().toISOString()
+          },
+          {
+            user_id: "mock_user_5",
+            email: "rajesh.patel@citymind.org",
+            name: "Rajesh Patel",
+            credibility_score: 88,
+            total_issues_reported: 5,
+            badges_earned: ["Problem Solver"],
+            is_authority: false,
+            zone: "Zone B",
+            created_at: new Date().toISOString()
+          },
+          {
+            user_id: "mock_user_6",
+            email: "meera.sen@citymind.org",
+            name: "Meera Sen",
+            credibility_score: 90,
+            total_issues_reported: 3,
+            badges_earned: [],
+            is_authority: false,
+            zone: "Zone C",
+            created_at: new Date().toISOString()
+          }
+        ];
+
+        for (const u of mockUsers) {
+          await setDoc(doc(db, 'users', u.user_id), u);
+        }
+
+        // Also seed some mock verifications for "most_verified" tab
+        const mockVerifications = [
+          { ver_id: "mv_1", user_id: "mock_user_1", issue_id: "some_issue_1", status: "confirmed", timestamp: new Date().toISOString() },
+          { ver_id: "mv_2", user_id: "mock_user_1", issue_id: "some_issue_2", status: "confirmed", timestamp: new Date().toISOString() },
+          { ver_id: "mv_3", user_id: "mock_user_1", issue_id: "some_issue_3", status: "confirmed", timestamp: new Date().toISOString() },
+          { ver_id: "mv_4", user_id: "mock_user_2", issue_id: "some_issue_1", status: "confirmed", timestamp: new Date().toISOString() },
+          { ver_id: "mv_5", user_id: "mock_user_2", issue_id: "some_issue_2", status: "confirmed", timestamp: new Date().toISOString() },
+          { ver_id: "mv_6", user_id: "mock_user_3", issue_id: "some_issue_1", status: "confirmed", timestamp: new Date().toISOString() },
+          { ver_id: "mv_7", user_id: "mock_user_4", issue_id: "some_issue_3", status: "confirmed", timestamp: new Date().toISOString() }
+        ];
+
+        for (const v of mockVerifications) {
+          await setDoc(doc(db, 'verifications', v.ver_id), v);
+        }
+      }
+
       const period = new Date().toISOString().substring(0, 7); 
       const leaderboardId = `${type}_${period}`;
       const boardRef = doc(db, 'leaderboards', leaderboardId);
@@ -2102,13 +2256,15 @@ async function bootstrap() {
 
       if (boardSnap.exists()) {
         let entries = boardSnap.data().entries || [];
-        if (zone && zone !== 'all') {
-          entries = entries.filter((e: any) => e.zone === zone);
+        if (entries.length > 1) { // If there's more than one user cached, use the cache
+          if (zone && zone !== 'all') {
+            entries = entries.filter((e: any) => e.zone === zone);
+          }
+          return res.json(entries.slice(0, limitVal));
         }
-        return res.json(entries.slice(0, limitVal));
       }
 
-      console.log(`Leaderboard snapshot ${leaderboardId} not found, calculating on-the-fly...`);
+      console.log(`Leaderboard snapshot ${leaderboardId} not found or has <= 1 user, calculating on-the-fly...`);
       const usersCol = collection(db, 'users');
       const usersSnap = await getDocs(usersCol);
       const users: any[] = [];
@@ -2570,54 +2726,6 @@ async function bootstrap() {
         }
       }
       res.json({ success: true, badge_id: badgeId });
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
-  });
-
-  app.get('/api/gamification/leaderboard', async (req, res) => {
-    try {
-      const { type, zone, limit = 20 } = req.query;
-      const usersCol = collection(db, 'users');
-      const qSnapshot = await getDocs(usersCol);
-      let users: any[] = [];
-      qSnapshot.forEach((docSnap) => users.push(docSnap.data()));
-
-      if (zone && zone !== 'All zones') {
-        users = users.filter(u => u.zone === zone);
-      }
-
-      users.sort((a, b) => (b.total_issues_reported || 0) - (a.total_issues_reported || 0));
-      const entries = users.slice(0, parseInt(limit as string)).map((u, idx) => ({
-        rank: idx + 1,
-        user_id: u.user_id,
-        username: u.name,
-        score: u.total_issues_reported || 0,
-        verifications: 0,
-        badge_icon: u.badges_earned?.[0] || 'User',
-        zone: u.zone || 'Zone A'
-      }));
-
-      res.json(entries);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
-  });
-
-  app.get('/api/gamification/user-points/:userId', async (req, res) => {
-    try {
-      const userSnap = await getDoc(doc(db, 'users', req.params.userId));
-      if (!userSnap.exists()) return res.status(404).json({ error: "Not found" });
-      const user = userSnap.data();
-      const issues = user.total_issues_reported || 0;
-      const verifications = user.total_verifications || Math.floor(Math.random() * 50); // MOCKED
-      const resolutions = user.total_resolutions || Math.floor(Math.random() * 5); // MOCKED
-      const total_points = (issues * 5) + (verifications * 1) + (resolutions * 10);
-      
-      res.json({
-        total_points,
-        breakdown: { issues: issues * 5, verifications: verifications * 1, resolutions: resolutions * 10 }
-      });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
