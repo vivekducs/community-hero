@@ -20,7 +20,8 @@ import {
   Layers,
   Camera,
   AlertCircle,
-  X
+  X,
+  Share2
 } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'motion/react';
@@ -358,6 +359,37 @@ export default function IssueDetail() {
     }
   };
 
+  const handleShare = async () => {
+    if (!issue) return;
+
+    const shareData = {
+      title: `CityMind Issue: ${issue.title}`,
+      text: `Check out this reported civic issue: "${issue.title}" under ${issue.category} category. Status: ${issue.status}.`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Shared successfully!");
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error("Error sharing:", error);
+          toast.error("Failed to share.");
+        }
+      }
+    } else {
+      // Fallback: Copy link to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Link copied to clipboard! Share it with others.");
+      } catch (err) {
+        console.error("Failed to copy link:", err);
+        toast.error("Could not copy link to clipboard.");
+      }
+    }
+  };
+
   const getSeverityColor = (sev: string) => {
     switch (sev) {
       case 'critical':
@@ -420,9 +452,19 @@ export default function IssueDetail() {
           <ArrowLeft className="w-4 h-4" />
           Back to Live Map
         </Link>
-        <span className="text-xs font-mono text-slate-400 font-semibold uppercase tracking-wider">
-          ID: {issue.issue_id}
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-navy hover:text-white bg-navy/5 hover:bg-navy border border-navy/10 rounded-xl transition-all duration-150 cursor-pointer shadow-sm"
+            title="Share this report"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            Share
+          </button>
+          <span className="text-xs font-mono text-slate-400 font-semibold uppercase tracking-wider">
+            ID: {issue.issue_id}
+          </span>
+        </div>
       </div>
 
       {/* Main Grid Layout */}
