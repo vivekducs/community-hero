@@ -736,13 +736,19 @@ export default function Report() {
               <motion.div 
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: [0.9, 1.03, 1] }}
-                transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                transition={{
+                  default: { type: 'spring', stiffness: 300, damping: 18 },
+                  scale: { type: 'tween', ease: 'easeOut', duration: 0.3 }
+                }}
                 className="p-4 bg-accent-green/5 border border-accent-green/20 rounded-xl flex items-start gap-3"
               >
                 <motion.div
                   initial={{ scale: 0, rotate: -25 }}
                   animate={{ scale: [0, 1.35, 1], rotate: 0 }}
-                  transition={{ type: 'spring', stiffness: 450, damping: 12, delay: 0.15 }}
+                  transition={{
+                    default: { type: 'spring', stiffness: 450, damping: 12, delay: 0.15 },
+                    scale: { type: 'tween', ease: 'easeOut', duration: 0.4, delay: 0.15 }
+                  }}
                   className="shrink-0 mt-0.5"
                 >
                   <CheckCircle className="w-5 h-5 text-accent-green" />
