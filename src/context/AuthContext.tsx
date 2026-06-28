@@ -21,6 +21,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<UserProfile>;
   loginWithGoogle: () => Promise<UserProfile>;
   logout: () => Promise<void>;
+  updateProfile: (updated: Partial<UserProfile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,43 +41,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (firebaseUser) {
         try {
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          const userDocSnap = await getDoc(userDocRef);
+          const cached = localStorage.getItem(`user_profile_${firebaseUser.uid}`);
+          let profile: UserProfile | null = null;
+          if (cached) {
+            try {
+              profile = JSON.parse(cached);
+            } catch (e) {
+              console.error("Error parsing cached profile:", e);
+            }
+          }
 
-          if (userDocSnap.exists()) {
-            const profile = userDocSnap.data() as UserProfile;
+          if (!profile) {
+            const userDocRef = doc(db, 'users', firebaseUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+              profile = userDocSnap.data() as UserProfile;
+            } else {
+              profile = {
+                user_id: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+                credibility_score: 100,
+                total_issues_reported: 0,
+                badges_earned: [],
+                is_authority: firebaseUser.email === 'vip901it@gmail.com' || firebaseUser.email?.endsWith('.gov') || false,
+                created_at: new Date().toISOString()
+              };
+            }
+          }
+
+          if (profile) {
+            localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profile));
             setUserState(profile);
             setUser(profile);
-          } else {
-            // Document might not exist if sign up hasn't written it yet or if created elsewhere
-            const fallbackProfile: UserProfile = {
-              user_id: firebaseUser.uid,
-              email: firebaseUser.email || '',
-              name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-              credibility_score: 100,
-              total_issues_reported: 0,
-              badges_earned: [],
-              is_authority: firebaseUser.email === 'vip901it@gmail.com' || firebaseUser.email?.endsWith('.gov') || false,
-              created_at: new Date().toISOString()
-            };
-            setUserState(fallbackProfile);
-            setUser(fallbackProfile);
           }
         } catch (err: any) {
           console.error("Error fetching user profile:", err);
-          // Standard fallback so we don't block the user
-          const fallbackProfile: UserProfile = {
-            user_id: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            name: firebaseUser.displayName || 'User',
-            credibility_score: 100,
-            total_issues_reported: 0,
-            badges_earned: [],
-            is_authority: firebaseUser.email === 'vip901it@gmail.com' || false,
-            created_at: new Date().toISOString()
-          };
-          setUserState(fallbackProfile);
-          setUser(fallbackProfile);
+          const cached = localStorage.getItem(`user_profile_${firebaseUser.uid}`);
+          let profile: UserProfile;
+          if (cached) {
+            profile = JSON.parse(cached);
+          } else {
+            profile = {
+              user_id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: firebaseUser.displayName || 'User',
+              credibility_score: 100,
+              total_issues_reported: 0,
+              badges_earned: [],
+              is_authority: firebaseUser.email === 'vip901it@gmail.com' || false,
+              created_at: new Date().toISOString()
+            };
+          }
+          setUserState(profile);
+          setUser(profile);
         }
       } else {
         setUserState(null);
@@ -110,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
       await setDoc(doc(db, 'users', firebaseUser.uid), profile);
+      localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profile));
       setUserState(profile);
       setUser(profile);
       setLoadingState(false);
@@ -151,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await setDoc(doc(db, 'users', firebaseUser.uid), profile);
       }
 
+      localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profile));
       setUserState(profile);
       setUser(profile);
       setLoadingState(false);
@@ -193,6 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await setDoc(doc(db, 'users', firebaseUser.uid), profile);
       }
 
+      localStorage.setItem(`user_profile_${firebaseUser.uid}`, JSON.stringify(profile));
       setUserState(profile);
       setUser(profile);
       setLoadingState(false);
@@ -210,6 +232,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoadingState(true);
     setLoading(true);
     try {
+      if (user) {
+        localStorage.removeItem(`user_profile_${user.user_id}`);
+      }
       await signOut(auth);
       setUserState(null);
       setUser(null);
@@ -223,8 +248,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (updated: Partial<UserProfile>) => {
+    if (!user) return;
+    const updatedProfile = { ...user, ...updated };
+    
+    // Always persist to local storage first, then update context state
+    localStorage.setItem(`user_profile_${user.user_id}`, JSON.stringify(updatedProfile));
+    setUserState(updatedProfile);
+    setUser(updatedProfile);
+
+    // Attempt to persist to cloud database in background, but don't crash if it fails
+    try {
+      await setDoc(doc(db, 'users', user.user_id), updatedProfile, { merge: true });
+    } catch (err: any) {
+      console.warn("Failed to sync profile to cloud database (will retry next save):", err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, signup, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, signup, login, loginWithGoogle, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

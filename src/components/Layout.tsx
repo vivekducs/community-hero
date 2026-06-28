@@ -300,23 +300,23 @@ export default function Layout({ children }: LayoutProps) {
     <div className="h-screen flex flex-col bg-[#F4F6F8] dark:bg-slate-900 text-[#1F2937] dark:text-slate-100 font-sans transition-colors duration-300 overflow-hidden" id="layout-root">
       
       {/* Header */}
-      <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-6 md:px-8 border-b border-gray-200 bg-white shadow-sm transition-colors duration-300" id="header-container">
+      <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-6 md:px-8 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-colors duration-300" id="header-container">
         <div className="flex items-center gap-3">
           <button 
             id="mobile-menu-toggle"
             onClick={() => setSidebarOpen(true)}
-            className="p-2 -ml-2 text-[#4B5563] rounded-lg md:hidden hover:bg-gray-100 focus:outline-none"
+            className="p-2 -ml-2 text-slate-600 dark:text-slate-300 rounded-lg md:hidden hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none"
           >
             <Menu className="w-6 h-6" />
           </button>
           
           <Link to="/" className="flex items-center gap-3" id="logo-link">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#003366] text-white shadow-sm relative">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900 dark:bg-slate-800 text-white shadow-sm relative">
               <Settings className="w-5 h-5" />
-              <Leaf className="w-3 h-3 absolute bottom-1 right-1 text-[#FF9933]" />
+              <Leaf className="w-3 h-3 absolute bottom-1 right-1 text-amber-500" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-[#003366]">
-              City<span className="text-[#FF9933] font-bold">Mind</span>
+            <span className="font-bold text-xl tracking-tight text-slate-800 dark:text-slate-100">
+              City<span className="text-amber-500 font-bold">Mind</span>
             </span>
           </Link>
         </div>
@@ -329,7 +329,7 @@ export default function Layout({ children }: LayoutProps) {
             id="search-bar-container"
           >
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="w-4 h-4 text-[#4B5563]" />
+              <Search className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             </span>
             <input
               id="header-search-input"
@@ -341,21 +341,21 @@ export default function Layout({ children }: LayoutProps) {
               onBlur={() => {
                 setTimeout(() => setIsSearchFocused(false), 200);
               }}
-              className="w-full h-10 pl-10 pr-3 py-2 border-0 rounded-lg bg-gray-100 text-sm text-[#1F2937] placeholder-[#4B5563] focus:outline-none focus:ring-2 focus:ring-[#003366] focus:bg-white transition-all duration-200"
+              className="w-full h-10 pl-10 pr-3 py-2 border-0 rounded-lg bg-slate-100 dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 dark:focus:ring-amber-500 focus:bg-white dark:focus:bg-slate-950 transition-all duration-200"
             />
             
             {/* Recent Searches Dropdown */}
             {isSearchFocused && recentSearches.length > 0 && (
               <div 
-                className="absolute left-0 right-0 mt-2 z-50 bg-white border border-gray-200 rounded-xl shadow-lg py-2 overflow-hidden transition-all duration-150 animate-in fade-in slide-in-from-top-1"
+                className="absolute left-0 right-0 mt-2 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg py-2 overflow-hidden transition-all duration-150 animate-in fade-in slide-in-from-top-1"
                 id="search-dropdown"
               >
-                <div className="px-3.5 py-1.5 flex items-center justify-between border-b border-gray-100 mb-1">
-                  <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider">Recent Searches</span>
+                <div className="px-3.5 py-1.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 mb-1">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">Recent Searches</span>
                   <button
                     type="button"
                     onMouseDown={handleClearAllRecents}
-                    className="text-[10px] font-bold text-[#003366] hover:text-[#002244] hover:underline cursor-pointer"
+                    className="text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:underline cursor-pointer"
                   >
                     Clear All
                   </button>
@@ -363,18 +363,18 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="max-h-60 overflow-y-auto">
                   {recentSearches.map((term, index) => (
                     <div
-                      key={index}
-                      onMouseDown={() => handleSelectRecent(term)}
-                      className="flex items-center justify-between px-3.5 py-2 text-sm text-[#1F2937] hover:bg-gray-50 transition-colors cursor-pointer group"
+                       key={index}
+                       onMouseDown={() => handleSelectRecent(term)}
+                       className="flex items-center justify-between px-3.5 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group"
                     >
                       <div className="flex items-center gap-2.5">
-                        <Clock className="w-3.5 h-3.5 text-[#4B5563] group-hover:text-[#003366]" />
+                        <Clock className="w-3.5 h-3.5 text-slate-450 group-hover:text-slate-800 dark:group-hover:text-slate-150" />
                         <span className="font-medium">{term}</span>
                       </div>
                       <button
                         type="button"
                         onMouseDown={(e) => handleDeleteRecent(e, term)}
-                        className="p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-100 transition-colors"
+                        className="p-1 rounded-full text-gray-400 hover:text-red-500 hover:bg-gray-150 transition-colors"
                         title="Remove search"
                       >
                         <X className="w-3 h-3" />
@@ -388,7 +388,7 @@ export default function Layout({ children }: LayoutProps) {
 
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className="p-2 text-[#4B5563] hover:text-[#003366] rounded-lg transition-colors"
+            className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             title="Toggle theme"
           >
             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -399,7 +399,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="relative" ref={dropdownRef} id="notifications-menu">
                 <button 
                   onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                  className="p-2 text-[#4B5563] hover:text-[#003366] dark:text-gray-300 dark:hover:text-amber-400 relative transition-colors duration-150 focus:outline-none"
+                  className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 relative rounded-lg transition-colors duration-150 focus:outline-none"
                   aria-label="Toggle notifications"
                 >
                   <Bell className="w-5 h-5" />
@@ -510,13 +510,13 @@ export default function Layout({ children }: LayoutProps) {
                 </AnimatePresence>
               </div>
 
-              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+              <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-800">
                 <Link to="/profile" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
                   <div className="hidden sm:block text-right">
-                    <p className="text-sm font-semibold text-[#1F2937] leading-none">{user.name}</p>
-                    <p className="text-xs text-[#4B5563] mt-1">{user.is_authority ? 'City Authority' : 'Citizen Sentinel'}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-none">{user.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{user.is_authority ? 'City Authority' : 'Citizen Sentinel'}</p>
                   </div>
-                  <div className="w-9 h-9 rounded-full ring-2 ring-[#003366]/10 bg-[#003366]/5 text-[#003366] font-bold flex items-center justify-center text-sm">
+                  <div className="w-9 h-9 rounded-full ring-2 ring-slate-200 dark:ring-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold flex items-center justify-center text-sm transition-all">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                 </Link>
@@ -525,7 +525,7 @@ export default function Layout({ children }: LayoutProps) {
                   id="btn-logout-header"
                   onClick={handleLogout}
                   title="Sign Out"
-                  className="p-2 text-[#4B5563] hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors hidden sm:block"
+                  className="p-2 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:block"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -628,30 +628,22 @@ export default function Layout({ children }: LayoutProps) {
           {/* Desktop Footer matching Sleek Interface design exactly */}
           <footer className="h-14 bg-white border-t border-gray-200 px-8 flex items-center justify-between shrink-0 hidden md:flex" id="desktop-footer">
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#138808] animate-pulse"></div>
-                <span className="text-xs font-semibold text-[#4B5563] uppercase">Systems Nominal</span>
-              </div>
-              <span className="text-xs text-gray-300">|</span>
-              <p className="text-xs font-medium text-[#4B5563] tracking-wide">GCP CLOUD RUN: citymind-backend-active</p>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">CityMind Platform</span>
               <span className="text-xs text-gray-300">|</span>
               <div className="flex items-center gap-4">
-                <Link to="/about" className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
+                <Link to="/about" className="text-xs font-medium text-slate-600 hover:text-navy hover:underline">
                   About Us
                 </Link>
-                <Link to="/privacy" className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
+                <Link to="/privacy" className="text-xs font-medium text-slate-600 hover:text-navy hover:underline">
                   Privacy Policy
                 </Link>
-                <Link to="/support" className="text-xs font-medium text-[#4B5563] hover:text-[#003366] hover:underline">
+                <Link to="/support" className="text-xs font-medium text-slate-600 hover:text-navy hover:underline">
                   Support
                 </Link>
               </div>
             </div>
             <div className="flex gap-2 items-center">
-              <div className="h-2 w-16 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full w-2/3 bg-[#138808]"></div>
-              </div>
-              <span className="text-[10px] font-bold text-[#4B5563] tracking-tighter">8.2GB / 12GB FL Firestore Used</span>
+              <span className="text-xs font-bold text-gray-400 tracking-tighter">© 2026 CityMind</span>
             </div>
           </footer>
         </main>

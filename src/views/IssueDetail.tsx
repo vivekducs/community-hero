@@ -804,7 +804,7 @@ export default function IssueDetail() {
                   }`}
                 >
                   <ThumbsUp className="w-5 h-5" />
-                  <span className="text-xs font-bold">Confirm ({issue.upvotes})</span>
+                  <span className="text-xs font-bold">Upvote ({issue.upvotes})</span>
                 </button>
 
                 <button
@@ -816,7 +816,7 @@ export default function IssueDetail() {
                   }`}
                 >
                   <ThumbsDown className="w-5 h-5" />
-                  <span className="text-xs font-bold">Reject ({issue.downvotes})</span>
+                  <span className="text-xs font-bold">Downvote ({issue.downvotes})</span>
                 </button>
               </div>
             </div>
