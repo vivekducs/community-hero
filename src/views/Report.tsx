@@ -1996,7 +1996,7 @@ export default function Report() {
                         ? 'bg-navy text-white rounded-br-none'
                         : 'bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200 shadow-sm'
                     }`}>
-                      {msg.content}
+                      {msg.text}
                     </div>
                   </div>
                 ))}
