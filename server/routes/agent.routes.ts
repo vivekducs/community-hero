@@ -9,5 +9,7 @@ router.post(['/agent/escalation', '/api/agent/escalation'], AgentController.trig
 router.post(['/agent/insights', '/api/agent/insights'], AgentController.triggerInsights);
 router.post(['/agent/leaderboard', '/api/agent/leaderboard'], AgentController.triggerLeaderboard);
 router.get(['/dashboard/insights', '/api/dashboard/insights'], AgentController.getDashboardInsights);
+router.get(['/agents/registry', '/api/agents/registry'], AgentController.getRegistry);
+router.get(['/agents/logs', '/api/agents/logs'], AgentController.getLogs);
 
 export default router;

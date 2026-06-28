@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { AgentService } from '../services/agent.service';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { agentRegistry } from '../agents/AgentRegistry';
+import { agentOrchestrator } from '../agents/AgentOrchestrator';
 
 export class AgentController {
   static async triggerIngestion(req: Request, res: Response) {
@@ -101,6 +103,38 @@ export class AgentController {
       });
     } catch (err: any) {
       console.error("Leaderboard trigger failed:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  static async getRegistry(req: Request, res: Response) {
+    try {
+      const agents = agentRegistry.getAllAgents();
+      const list = await Promise.all(agents.map(async (agent) => {
+        const health = await agent.health();
+        return {
+          id: agent.id,
+          name: agent.name,
+          description: agent.description,
+          priority: agent.priority,
+          health: health.status,
+          healthDetails: health.details
+        };
+      }));
+      return res.json(list);
+    } catch (err: any) {
+      console.error("Failed to fetch agent registry:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  static async getLogs(req: Request, res: Response) {
+    try {
+      const limitVal = req.query.limit ? parseInt(req.query.limit as string) : 30;
+      const logs = await agentOrchestrator.getRecentLogs(limitVal);
+      return res.json(logs);
+    } catch (err: any) {
+      console.error("Failed to fetch agent logs:", err);
       return res.status(500).json({ error: err.message });
     }
   }

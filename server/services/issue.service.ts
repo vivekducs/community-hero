@@ -4,6 +4,7 @@ import { NotificationRepository } from '../repositories/notification.repository'
 import { GeminiService } from './gemini.service';
 import { AgentService } from './agent.service';
 import { getCoordinatesDistanceMeters } from '../helpers';
+import { runIssueWorkflow } from '../workflows/issue.workflow';
 
 export class IssueService {
   static async createIssue(body: any): Promise<Issue> {
@@ -139,19 +140,15 @@ export class IssueService {
       );
     }
 
-    // Trigger Autonomous Ingestion & Dispatch Agent (Agent 1) if not discarded
+    // Trigger unified, transacted multi-agent Issue Reporting Workflow if not discarded
     if (status !== 'auto_discarded') {
       try {
-        await AgentService.handleAgentIngestion(issue_id);
-      } catch (ingestErr) {
-        console.error("Auto-ingestion agent failed in IssueService:", ingestErr);
-      }
-
-      // Trigger Autonomous Duplicate Detection Agent (Agent 2)
-      try {
-        await AgentService.handleAgentDuplicateDetection(issue_id);
-      } catch (dupErr) {
-        console.error("Auto-duplicate detection agent failed in IssueService:", dupErr);
+        const freshlyCreatedIssue = await IssueRepository.getById(issue_id);
+        if (freshlyCreatedIssue) {
+          await runIssueWorkflow(freshlyCreatedIssue, { userId: created_by || 'anonymous', name: created_by_name || 'Citizen Sentinel' });
+        }
+      } catch (workflowErr) {
+        console.error("Issue Reporting Workflow failed in IssueService:", workflowErr);
       }
     }
 

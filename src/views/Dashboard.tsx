@@ -14,6 +14,7 @@ import { motion } from 'motion/react';
 import { useIssues } from '../hooks/useIssues';
 import { usePredictiveInsights } from '../hooks/usePredictiveInsights';
 import { StatCard } from '../components/StatCard';
+import { AgentActivityTerminal } from '../components/AgentActivityTerminal';
 import { 
   PieChart, 
   Pie, 
@@ -315,6 +316,9 @@ export default function Dashboard() {
           </div>
         )}
       </section>
+
+      {/* Agentic Platform Telemetry Dashboard */}
+      <AgentActivityTerminal />
     </div>
   );
 }
