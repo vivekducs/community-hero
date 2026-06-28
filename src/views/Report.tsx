@@ -25,7 +25,23 @@ import {
   XCircle,
   EyeOff,
   Mic,
-  MicOff
+  MicOff,
+  MessageSquare,
+  Send,
+  Volume2,
+  Award,
+  ShieldAlert,
+  Wrench,
+  Clock,
+  BarChart3,
+  Info,
+  Layers,
+  Globe,
+  Languages,
+  FileText,
+  Activity,
+  Check,
+  ChevronRight
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast, Toaster } from 'react-hot-toast';
@@ -157,6 +173,24 @@ export default function Report() {
   }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // New features state
+  const [rightActiveTab, setRightActiveTab] = useState<'map' | 'copilot'>('map');
+  const [copilotLanguage, setCopilotLanguage] = useState<'en' | 'hi'>('en');
+  const [chatMessages, setChatMessages] = useState<any[]>([
+    { role: 'model', text: "Namaste! I am your CityMind Citizen Copilot. Speak or type in English or Hindi, and I will help you file a perfect civic report! Kya samasya hai?" }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [isListeningChat, setIsListeningChat] = useState(false);
+
+  const [fullAnalysis, setFullAnalysis] = useState<any | null>(null);
+
+  const [voiceReportLang, setVoiceReportLang] = useState<'en' | 'hi'>('en');
+  const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [voiceParsing, setVoiceParsing] = useState(false);
+  const [isListeningVoiceReport, setIsListeningVoiceReport] = useState(false);
+  const [voiceParsedData, setVoiceParsedData] = useState<any | null>(null);
   
   const [aiSuggestions, setAiSuggestions] = useState<{
     category: string;
@@ -295,6 +329,234 @@ export default function Report() {
     }
   };
 
+  /**
+   * Speech Recognition for AI Copilot Chat (Feature 1, 9)
+   */
+  const toggleListeningChat = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast.error("Web Speech API not supported.");
+      return;
+    }
+
+    if (isListeningChat) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      return;
+    }
+
+    try {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = copilotLanguage === 'hi' ? 'hi-IN' : 'en-US';
+
+      rec.onstart = () => {
+        setIsListeningChat(true);
+        toast.success(`Listening (${copilotLanguage === 'hi' ? 'Hindi' : 'English'})... Speak now`, { id: 'chat-speech' });
+      };
+
+      rec.onerror = (e: any) => {
+        console.error("Chat Speech Error:", e);
+        toast.error("Failed to capture speech.");
+        setIsListeningChat(false);
+      };
+
+      rec.onend = () => {
+        setIsListeningChat(false);
+      };
+
+      rec.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setChatInput(transcript);
+          toast.success("Transcribed! Press Send.", { id: 'chat-speech' });
+        }
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
+    } catch (err) {
+      console.error(err);
+      toast.error("Microphone initialization failed.");
+    }
+  };
+
+  /**
+   * Send Message to AI Citizen Copilot (Feature 1, 9)
+   */
+  const sendCopilotMessage = async (textToSend?: string) => {
+    const text = textToSend || chatInput;
+    if (!text.trim()) return;
+
+    const userMsg = { role: 'user', text };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput('');
+    setChatLoading(true);
+
+    try {
+      // Build history for backend
+      const historyPayload = chatMessages.map(m => ({
+        role: m.role,
+        text: m.text
+      }));
+
+      const res = await apiFetch('/api/gemini/copilot-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: historyPayload
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setChatMessages(prev => [...prev, { role: 'model', text: data.reply }]);
+
+        // Auto-populate form if extracted details exist
+        if (data.extractedDetails) {
+          const details = data.extractedDetails;
+          let filledAny = false;
+
+          if (details.title) {
+            setValue('title', details.title);
+            filledAny = true;
+          }
+          if (details.description) {
+            setValue('description', details.description);
+            filledAny = true;
+          }
+          if (details.category) {
+            setValue('category', details.category);
+            filledAny = true;
+          }
+          if (details.subcategory) {
+            setValue('subcategory', details.subcategory);
+            filledAny = true;
+          }
+          if (details.severity) {
+            setValue('severity', details.severity);
+            filledAny = true;
+          }
+
+          if (filledAny) {
+            toast.success("Copilot automatically updated the report form fields!", { icon: '🤖' });
+          }
+        }
+      } else {
+        throw new Error("Chat failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setChatMessages(prev => [...prev, { role: 'model', text: "Excuse me, I faced a minor connection error. Let's try again, or you can fill in the form fields directly!" }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  /**
+   * Speech Recognition for Voice Reporting Widget (Feature 2, 9)
+   */
+  const toggleListeningVoiceReport = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast.error("Web Speech API not supported.");
+      return;
+    }
+
+    if (isListeningVoiceReport) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      return;
+    }
+
+    try {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = voiceReportLang === 'hi' ? 'hi-IN' : 'en-US';
+
+      rec.onstart = () => {
+        setIsListeningVoiceReport(true);
+        setVoiceTranscript('');
+        toast.success(`Voice Reporting is active (${voiceReportLang === 'hi' ? 'Hindi' : 'English'}). Speak your issue...`, { id: 'voice-widget' });
+      };
+
+      rec.onerror = (e: any) => {
+        console.error("Voice Widget Speech Error:", e);
+        toast.error("Mic error.");
+        setIsListeningVoiceReport(false);
+      };
+
+      rec.onend = () => {
+        setIsListeningVoiceReport(false);
+      };
+
+      rec.onresult = async (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setVoiceTranscript(transcript);
+          toast.success("Speech captured! Parsing details...", { id: 'voice-widget' });
+          await parseVoiceTranscript(transcript);
+        }
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  /**
+   * Parse Voice Transcript to Structured Data (Feature 2)
+   */
+  const parseVoiceTranscript = async (transcript: string) => {
+    setVoiceParsing(true);
+    try {
+      const response = await apiFetch('/api/gemini/voice-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setVoiceParsedData(data);
+        toast.success("Speech parsed into structured fields! Review them below.", { id: 'voice-widget' });
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to parse voice transcript automatically.", { id: 'voice-widget' });
+    } finally {
+      setVoiceParsing(false);
+    }
+  };
+
+  /**
+   * Apply Voice Parsed Data to Form (Feature 2)
+   */
+  const applyVoiceParsedData = () => {
+    if (!voiceParsedData) return;
+
+    if (voiceParsedData.title) setValue('title', voiceParsedData.title);
+    if (voiceParsedData.description) setValue('description', voiceParsedData.description);
+    if (voiceParsedData.category) setValue('category', voiceParsedData.category);
+    if (voiceParsedData.subcategory) setValue('subcategory', voiceParsedData.subcategory);
+    if (voiceParsedData.severity) setValue('severity', voiceParsedData.severity);
+
+    toast.success("Applied! Your form has been fully pre-populated.", { icon: '📝' });
+    setVoiceParsedData(null);
+    setVoiceTranscript('');
+  };
+
   // Trigger GPS auto-detect
   const handleGPSDetect = (isInitial: boolean = false) => {
     if (isInitial) {
@@ -403,6 +665,7 @@ export default function Report() {
 
     setAiSuggestions(prev => ({ ...prev, loading: true }));
     setImageAnalysis(prev => ({ ...prev, loading: true, analyzed: false }));
+    setFullAnalysis(null);
 
     try {
       let base64Image: string | undefined = undefined;
@@ -416,18 +679,25 @@ export default function Report() {
         });
       }
 
-      const response = await apiFetch('/api/gemini/insights', {
+      const response = await apiFetch('/api/gemini/analyze-full', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           title: watchedTitle, 
           description: watchedDescription || "No detailed description provided.",
-          image: base64Image
+          image: base64Image,
+          latitude: selectedLocation?.lat,
+          longitude: selectedLocation?.lng
         })
       });
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Store full analysis
+        setFullAnalysis(data);
+
+        // Keep backwards compatible state synchronized
         setAiSuggestions({
           category: data.category || 'Roads',
           subcategory: data.subcategory || 'Pothole',
@@ -437,15 +707,15 @@ export default function Report() {
           loading: false
         });
 
-        if (data.image_flagged_status !== undefined) {
+        if (data.vision) {
           setImageAnalysis({
             loading: false,
             analyzed: true,
-            isValid: data.image_flagged_status === 'none',
-            isClear: data.image_clear !== undefined ? data.image_clear : true,
-            issueVisible: data.issue_visible !== undefined ? data.issue_visible : true,
-            feedback: data.image_feedback || '',
-            flaggedStatus: data.image_flagged_status
+            isValid: data.vision.issueVisible,
+            isClear: data.vision.clarified,
+            issueVisible: data.vision.issueVisible,
+            feedback: data.vision.qualityFeedback || '',
+            flaggedStatus: data.vision.issueVisible ? 'none' : 'clean_no_issue'
           });
         } else {
           setImageAnalysis({
@@ -460,10 +730,11 @@ export default function Report() {
         }
 
         // Autofill form
-        setValue('category', data.category);
-        setValue('subcategory', data.subcategory);
-        setValue('severity', data.severity);
-        toast.success(`AI suggested: ${data.category} (${data.confidence}% confidence)`);
+        setValue('category', data.category || 'Roads');
+        setValue('subcategory', data.subcategory || 'Pothole');
+        setValue('severity', data.severity || 'medium');
+        
+        toast.success(`Agentic Multi-Agent Triage complete! Match: ${data.category} (${data.confidence}% confidence)`);
       } else {
         throw new Error();
       }
@@ -715,6 +986,24 @@ export default function Report() {
       // Update local Zustand store
       addIssue(createdIssue as Issue);
 
+      // Create an AI-powered smart notification (Feature 10)
+      try {
+        const notifId = 'notif_' + Math.random().toString(36).substr(2, 9);
+        const expectedResponse = fullAnalysis?.suggestions?.expectedResponseTime || '4 hours';
+        const expectedRepair = fullAnalysis?.suggestions?.estimatedRepairTime || '48 hours';
+        
+        await setDoc(doc(db, 'notifications', notifId), {
+          notification_id: notifId,
+          issue_id: createdIssue.issue_id,
+          user_id: user.user_id,
+          message: `🤖 [AI Dispatcher]: Incident "${createdIssue.title}" assigned to ${createdIssue.department || departmentName}. Resolution expected within ${expectedRepair} (Dispatch SLA: ${expectedResponse}).`,
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+      } catch (notifErr) {
+        console.warn("Failed to create AI notification:", notifErr);
+      }
+
       if (createdIssue.status === 'auto_discarded') {
         toast.error(`Auto-Filtered: ${createdIssue.image_feedback || 'Irrelevant photo detected.'}`, { duration: 8000 });
         toast("Your report was auto-discarded because the photo was verified as invalid (such as an indoor home or clean surface). Report it again with a correct photo.", { icon: '⚠️', duration: 8000 });
@@ -763,6 +1052,176 @@ export default function Report() {
         <div className="lg:col-span-2 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" id="report-issue-form">
             
+            {/* Multi-language Voice Reporting Widget (Feature 2, 9) */}
+            <div className="p-5 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-saffron/10 rounded-xl border border-saffron/20">
+                    <Mic className="w-5 h-5 text-saffron" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-extrabold tracking-tight">🗣️ Dynamic Voice Reporting</h4>
+                    <p className="text-[10px] text-slate-400 font-medium">Hindi & English Speech-to-Text Incident Dispatcher</p>
+                  </div>
+                </div>
+
+                {/* Language Selector (Feature 9) */}
+                <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setVoiceReportLang('en')}
+                    className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-colors ${
+                      voiceReportLang === 'en' ? 'bg-navy text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVoiceReportLang('hi')}
+                    className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-colors ${
+                      voiceReportLang === 'hi' ? 'bg-saffron text-slate-950' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    हिंदी
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                Speak your issue in details (e.g. "हमारे यहाँ कानपुर में मुख्य सड़क पर बहुत बड़ा गड्ढा है जिससे गाड़ियां फिसल रही हैं").
+                CityMind will automatically parse it and draft structured report details.
+              </p>
+
+              {/* Action Mic Row */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={toggleListeningVoiceReport}
+                  className={`flex-1 h-12 rounded-xl font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all duration-150 cursor-pointer ${
+                    isListeningVoiceReport
+                      ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                      : 'bg-saffron hover:bg-saffron/90 text-slate-950'
+                  }`}
+                >
+                  {isListeningVoiceReport ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      Listening to Speech... (Tap to stop)
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-4 h-4 text-slate-950" />
+                      Start Speaking
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Transcript Display */}
+              {voiceTranscript && (
+                <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700 text-xs text-slate-200 font-medium">
+                  <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wide mb-1">What we heard:</span>
+                  "{voiceTranscript}"
+                </div>
+              )}
+
+              {/* Parsing Loader */}
+              {voiceParsing && (
+                <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700 text-xs text-slate-300 flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-saffron shrink-0" />
+                  <span>CityMind AI Agent is parsing your speech into structured report fields...</span>
+                </div>
+              )}
+
+              {/* Parsed Fields Preview & Edit (Feature 2) */}
+              {voiceParsedData && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-3"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span className="text-xs font-bold text-saffron">Parsed Draft Details Preview</span>
+                    <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold">Review Fields</span>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Title</span>
+                      <input
+                        type="text"
+                        value={voiceParsedData.title || ''}
+                        onChange={(e) => setVoiceParsedData({ ...voiceParsedData, title: e.target.value })}
+                        className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-white font-medium focus:outline-none focus:border-saffron text-xs"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Description</span>
+                      <textarea
+                        value={voiceParsedData.description || ''}
+                        onChange={(e) => setVoiceParsedData({ ...voiceParsedData, description: e.target.value })}
+                        rows={2}
+                        className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-white font-medium focus:outline-none focus:border-saffron text-xs resize-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Category</span>
+                        <input
+                          type="text"
+                          value={voiceParsedData.category || ''}
+                          onChange={(e) => setVoiceParsedData({ ...voiceParsedData, category: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-white font-medium focus:outline-none focus:border-saffron text-xs"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Subcategory</span>
+                        <input
+                          type="text"
+                          value={voiceParsedData.subcategory || ''}
+                          onChange={(e) => setVoiceParsedData({ ...voiceParsedData, subcategory: e.target.value })}
+                          className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-white font-medium focus:outline-none focus:border-saffron text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Severity</span>
+                        <select
+                          value={voiceParsedData.severity || 'medium'}
+                          onChange={(e) => setVoiceParsedData({ ...voiceParsedData, severity: e.target.value })}
+                          className="w-full h-8 bg-slate-800 border border-slate-700 rounded px-1.5 text-white font-medium focus:outline-none focus:border-saffron text-xs cursor-pointer"
+                        >
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
+                          <option value="critical">Critical</option>
+                        </select>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Target Agency</span>
+                        <div className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-slate-400 font-mono text-[10px] truncate">
+                          {voiceParsedData.department || 'General Administration'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={applyVoiceParsedData}
+                    className="w-full h-10 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Check className="w-4 h-4" />
+                    Apply Fields & Auto-fill Form
+                  </button>
+                </motion.div>
+              )}
+            </div>
+
             {/* Title */}
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Incident Title *</label>
@@ -871,6 +1330,286 @@ export default function Report() {
                   <p>Estimated Responding Agency: <span className="font-semibold text-navy">{aiSuggestions.department}</span></p>
                   <p>Predicted Category: <span className="font-semibold text-navy">{aiSuggestions.category} &gt; {aiSuggestions.subcategory}</span></p>
                 </div>
+              </motion.div>
+            )}
+
+            {/* CityMind Smart Reporting Center (Features 3, 4, 5, 6, 7, 8, 11) */}
+            {fullAnalysis && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-6"
+              >
+                {/* Header & Confidence Meter (Feature 5) */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-extrabold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                      <Activity className="w-4 h-4 text-navy" />
+                      AI Intelligence Dashboard
+                    </h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Real-time transacted report analysis powered by CityMind Agents.</p>
+                  </div>
+
+                  {/* Confidence meter */}
+                  <div className="flex items-center gap-2.5 bg-white py-1.5 px-3 rounded-xl border border-slate-200">
+                    <div className="relative flex items-center justify-center w-9 h-9">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="18" cy="18" r="15" stroke="#f1f5f9" strokeWidth="3" fill="transparent" />
+                        <circle 
+                          cx="18" cy="18" r="15" 
+                          stroke={fullAnalysis.confidence >= 90 ? '#10b981' : '#f59e0b'} 
+                          strokeWidth="3" 
+                          fill="transparent" 
+                          strokeDasharray={94} 
+                          strokeDashoffset={94 - (94 * (fullAnalysis.confidence || 90)) / 100} 
+                        />
+                      </svg>
+                      <span className="absolute text-[10px] font-extrabold text-slate-700">{fullAnalysis.confidence}%</span>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Confidence Meter</p>
+                      <p className="text-xs font-extrabold text-slate-700">
+                        {fullAnalysis.confidence >= 90 ? 'High' : 'Moderate'} Trust
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reasoning Timeline (Explainability, Feature 11) */}
+                <div className="space-y-3">
+                  <h5 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                    <Layers className="w-3.5 h-3.5 text-navy" />
+                    Multi-Agent Decision Timeline
+                  </h5>
+                  <div className="relative pl-4 border-l-2 border-slate-200 ml-2.5 space-y-4">
+                    {fullAnalysis.explainability?.steps?.map((step: any, sIdx: number) => (
+                      <div key={step.id || sIdx} className="relative">
+                        {/* Dot */}
+                        <div className="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-white border-2 border-navy flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 rounded-full bg-saffron" />
+                        </div>
+                        <div className="text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-slate-800">{step.label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] bg-slate-200 text-slate-600 font-bold px-1.5 py-0.5 rounded">
+                                {step.durationMs}ms
+                              </span>
+                              <span className="text-[10px] text-emerald-600 font-extrabold">
+                                {step.confidence}%
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-slate-600 font-medium leading-relaxed">{step.reasoning}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Vision AI & OCR (Features 3, 4) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Vision Diagnostics */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                      <ImageIcon className="w-4 h-4 text-navy" />
+                      Vision AI Diagnostics
+                    </div>
+                    {fullAnalysis.vision ? (
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between text-[11px] border-b border-slate-100 pb-1.5">
+                          <span className="text-slate-500 font-medium">Issue Visible:</span>
+                          <span className={`font-bold px-1.5 py-0.5 rounded ${fullAnalysis.vision.issueVisible ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                            {fullAnalysis.vision.issueVisible ? 'Yes' : 'No'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] border-b border-slate-100 pb-1.5">
+                          <span className="text-slate-500 font-medium">Image Clear:</span>
+                          <span className={`font-bold px-1.5 py-0.5 rounded ${fullAnalysis.vision.clarified ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                            {fullAnalysis.vision.clarified ? 'Clear' : 'Low Clarity'}
+                          </span>
+                        </div>
+
+                        {/* Detected Issues */}
+                        {fullAnalysis.vision.detectedIssues?.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Detected Incidents:</span>
+                            <div className="flex flex-wrap gap-1">
+                              {fullAnalysis.vision.detectedIssues.map((issue: string, idx: number) => (
+                                <span key={idx} className="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">
+                                  {issue}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Hazards */}
+                        {fullAnalysis.vision.hazards?.length > 0 && (
+                          <div className="space-y-1 pt-1">
+                            <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide block flex items-center gap-1">
+                              <ShieldAlert className="w-3 h-3" /> Public Hazards:
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {fullAnalysis.vision.hazards.map((hazard: string, idx: number) => (
+                                <span key={idx} className="bg-red-50 text-red-700 font-semibold px-2 py-0.5 rounded text-[10px] border border-red-100">
+                                  {hazard}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400">No image submitted for diagnostics.</p>
+                    )}
+                  </div>
+
+                  {/* OCR Label Extraction */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                      <FileText className="w-4 h-4 text-navy" />
+                      OCR Label Scanning
+                    </div>
+                    {fullAnalysis.ocr ? (
+                      <div className="space-y-2.5 text-xs">
+                        <div className="bg-slate-50 p-2 rounded border border-slate-100 font-mono text-[10px] text-slate-600">
+                          {fullAnalysis.ocr.extractedText ? `"${fullAnalysis.ocr.extractedText}"` : '"No texts detected"'}
+                        </div>
+
+                        {fullAnalysis.ocr.streetName && (
+                          <div className="flex items-center gap-1 text-[11px]">
+                            <span className="text-slate-500 font-medium">Street Match:</span>
+                            <span className="font-bold text-navy flex items-center gap-0.5">
+                              <MapPin className="w-3 h-3" /> {fullAnalysis.ocr.streetName}
+                            </span>
+                          </div>
+                        )}
+
+                        {fullAnalysis.ocr.utilityLabels?.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Utility/Agency Seals:</span>
+                            <div className="flex flex-wrap gap-1">
+                              {fullAnalysis.ocr.utilityLabels.map((tag: string, idx: number) => (
+                                <span key={idx} className="bg-amber-50 text-amber-800 border border-amber-100 font-semibold px-2 py-0.5 rounded text-[10px]">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {fullAnalysis.ocr.improvementApplied && (
+                          <div className="p-2 bg-emerald-50 text-emerald-800 rounded text-[10px] border border-emerald-100">
+                            <strong>OCR Adjustment:</strong> {fullAnalysis.ocr.improvementDetails}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400">OCR context scanner inactive.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Report Quality Assessment (Feature 6) */}
+                {fullAnalysis.quality && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-100 pb-2">
+                      <span className="flex items-center gap-1.5">
+                        <Award className="w-4 h-4 text-navy" />
+                        AI Quality Assurance Audit
+                      </span>
+                      <span className="text-[11px] bg-navy text-white px-2 py-0.5 rounded-full">
+                        Overall Score: {fullAnalysis.quality.overallScore}/100
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wide">
+                          <span>Photo Quality</span>
+                          <span>{fullAnalysis.quality.imageScore}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-emerald-500 h-full" style={{ width: `${fullAnalysis.quality.imageScore}%` }} />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wide">
+                          <span>Description Quality</span>
+                          <span>{fullAnalysis.quality.descriptionScore}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-emerald-500 h-full" style={{ width: `${fullAnalysis.quality.descriptionScore}%` }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {fullAnalysis.quality.suggestions?.length > 0 && (
+                      <div className="space-y-1.5 pt-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Actionable Suggestions:</span>
+                        <ul className="text-xs text-slate-600 font-medium space-y-1 list-disc list-inside">
+                          {fullAnalysis.quality.suggestions.map((sug: string, idx: number) => (
+                            <li key={idx} className="leading-relaxed">{sug}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* AI Repair Recommendations (Feature 7) */}
+                {fullAnalysis.suggestions && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 border-b border-slate-100 pb-2">
+                      <Wrench className="w-4 h-4 text-navy" />
+                      AI SLA Estimates & Recommendations
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div className="bg-slate-50 p-3 rounded-lg text-center space-y-1 border border-slate-100">
+                        <Clock className="w-4 h-4 text-indigo-500 mx-auto" />
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Repair SLA</span>
+                        <span className="font-extrabold text-slate-800">{fullAnalysis.suggestions.estimatedRepairTime || '48 Hours'}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-lg text-center space-y-1 border border-slate-100">
+                        <ShieldAlert className="w-4 h-4 text-amber-500 mx-auto" />
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Dispatch SLA</span>
+                        <span className="font-extrabold text-slate-800">{fullAnalysis.suggestions.expectedResponseTime || 'Within 4 Hours'}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-lg text-center space-y-1 border border-slate-100">
+                        <Layers className="w-4 h-4 text-emerald-500 mx-auto" />
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Nearby Duplicates</span>
+                        <span className="font-extrabold text-slate-800">{fullAnalysis.suggestions.similarIssuesCount || 0} Found</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Municipal Executive Summary (Feature 8) */}
+                {fullAnalysis.summary && (
+                  <div className="bg-navy/5 p-4 rounded-xl border border-navy/10 space-y-2">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-navy">
+                      <FileText className="w-4 h-4 text-saffron" />
+                      Municipal Executive Summary
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed font-semibold italic bg-white p-3 rounded-lg border border-slate-150 shadow-inner">
+                      "{fullAnalysis.summary}"
+                    </p>
+                    <div className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(fullAnalysis.summary);
+                          toast.success("Executive summary copied to clipboard!");
+                        }}
+                        className="text-[10px] font-extrabold text-navy hover:underline flex items-center gap-0.5 ml-auto cursor-pointer"
+                      >
+                        Copy Summary
+                      </button>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -1117,72 +1856,223 @@ export default function Report() {
           </form>
         </div>
 
-        {/* Right Map Panel */}
+        {/* Right Map & AI Copilot Panel */}
         <div className="lg:col-span-1 flex flex-col gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-navy" />
-                Incident Geotargeting
-              </h3>
-              <button
-                type="button"
-                onClick={() => handleGPSDetect(false)}
-                disabled={gpsLoading}
-                className="p-1.5 text-slate-400 hover:text-navy hover:bg-slate-50 rounded-lg transition-all"
-                title="Detect GPS Position"
-              >
-                <RefreshCw className={`w-4 h-4 ${gpsLoading ? 'animate-spin text-navy' : ''}`} />
-              </button>
-            </div>
-            
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Tap anywhere on the interactive map below or click the refresh button to trigger your phone's high-precision GPS auto-detection.
-            </p>
-
-            {/* Target City Dropdown */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target City</label>
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full h-10 px-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150 cursor-pointer text-slate-700"
-              >
-                {INDIAN_CITIES.map(c => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="h-80 w-full rounded-xl overflow-hidden border border-slate-200 shadow-inner z-10" id="report-map-container">
-              <MapContainer 
-                center={[mapCenter.lat, mapCenter.lng]} 
-                zoom={13} 
-                style={{ height: '100%', width: '100%' }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <MapController center={mapCenter} />
-                <MapClickHandler />
-                {selectedLocation && (
-                  <Marker position={[selectedLocation.lat, selectedLocation.lng]} />
-                )}
-              </MapContainer>
-            </div>
-            {selectedLocation ? (
-              <div className="p-3 bg-accent-green/10 rounded-xl border border-accent-green/20 text-[11px] text-accent-green font-semibold flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-accent-green shrink-0" />
-                <span>Geopoint Captured: {selectedLocation.lat.toFixed(5)}°N, {selectedLocation.lng.toFixed(5)}°E</span>
-              </div>
-            ) : (
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-500 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-slate-400 shrink-0 animate-pulse" />
-                <span>Waiting for location pinpoint...</span>
-              </div>
-            )}
+          {/* Tabs */}
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setRightActiveTab('map')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                rightActiveTab === 'map' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              Pinpoint Location
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightActiveTab('copilot')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 relative ${
+                rightActiveTab === 'copilot' ? 'bg-white text-navy shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Bot className="w-4 h-4" />
+              AI Citizen Copilot
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-100 animate-ping" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-100" />
+            </button>
           </div>
+
+          {rightActiveTab === 'map' ? (
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-navy" />
+                  Incident Geotargeting
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => handleGPSDetect(false)}
+                  disabled={gpsLoading}
+                  className="p-1.5 text-slate-400 hover:text-navy hover:bg-slate-50 rounded-lg transition-all"
+                  title="Detect GPS Position"
+                >
+                  <RefreshCw className={`w-4 h-4 ${gpsLoading ? 'animate-spin text-navy' : ''}`} />
+                </button>
+              </div>
+              
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Tap anywhere on the interactive map below or click the refresh button to trigger your phone's high-precision GPS auto-detection.
+              </p>
+
+              {/* Target City Dropdown */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target City</label>
+                <select
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  className="w-full h-10 px-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-navy/20 focus:border-navy focus:outline-none transition-all duration-150 cursor-pointer text-slate-700"
+                >
+                  {INDIAN_CITIES.map(c => (
+                    <option key={c.name} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="h-80 w-full rounded-xl overflow-hidden border border-slate-200 shadow-inner z-10" id="report-map-container">
+                <MapContainer 
+                  center={[mapCenter.lat, mapCenter.lng]} 
+                  zoom={13} 
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <MapController center={mapCenter} />
+                  <MapClickHandler />
+                  {selectedLocation && (
+                    <Marker position={[selectedLocation.lat, selectedLocation.lng]} />
+                  )}
+                </MapContainer>
+              </div>
+              {selectedLocation ? (
+                <div className="p-3 bg-accent-green/10 rounded-xl border border-accent-green/20 text-[11px] text-accent-green font-semibold flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-accent-green shrink-0" />
+                  <span>Geopoint Captured: {selectedLocation.lat.toFixed(5)}°N, {selectedLocation.lng.toFixed(5)}°E</span>
+                </div>
+              ) : (
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-500 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-slate-400 shrink-0 animate-pulse" />
+                  <span>Waiting for location pinpoint...</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* AI Citizen Copilot Tab View (Feature 1, 9) */
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[520px]">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Bot className="w-5 h-5 text-navy animate-bounce" />
+                    AI Citizen Copilot
+                  </h3>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Triage Agent Live</span>
+                  </div>
+                </div>
+
+                {/* Language Toggles */}
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setCopilotLanguage('en')}
+                    className={`px-2 py-1 text-[10px] font-extrabold rounded transition-colors ${
+                      copilotLanguage === 'en' ? 'bg-navy text-white' : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCopilotLanguage('hi')}
+                    className={`px-2 py-1 text-[10px] font-extrabold rounded transition-colors ${
+                      copilotLanguage === 'hi' ? 'bg-saffron text-slate-950' : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    हिंदी
+                  </button>
+                </div>
+              </div>
+
+              {/* Chat Thread */}
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs mb-3 scrollbar-thin">
+                {chatMessages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] p-3 rounded-2xl font-medium leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'bg-navy text-white rounded-br-none'
+                        : 'bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200 shadow-sm'
+                    }`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {chatLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-slate-100 text-slate-500 px-4 py-3 rounded-2xl rounded-bl-none border border-slate-200 flex items-center gap-2 font-medium">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-navy" />
+                      <span>Copilot is drafting response...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Suggestions Chips */}
+              <div className="mb-3 space-y-1">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide block">Quick Test Scenarios:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setChatInput("Water pipe burst flooding MG Road near metro station");
+                      toast.success("Draft filled! Tap send.");
+                    }}
+                    className="text-[10px] bg-slate-50 text-slate-600 border border-slate-200 px-2 py-1 rounded-lg hover:bg-slate-100 hover:border-slate-300 font-semibold text-left cursor-pointer transition-colors"
+                  >
+                    💧 Pipe Burst (En)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setChatInput("यहाँ बहुत कचरा पड़ा हुआ है, मवेशी खा रहे हैं");
+                      toast.success("Draft filled! Tap send.");
+                    }}
+                    className="text-[10px] bg-slate-50 text-slate-600 border border-slate-200 px-2 py-1 rounded-lg hover:bg-slate-100 hover:border-slate-300 font-semibold text-left cursor-pointer transition-colors"
+                  >
+                    🗑️ कचरा ढेर (Hi)
+                  </button>
+                </div>
+              </div>
+
+              {/* Chat Input Bar */}
+              <form 
+                onSubmit={(e) => { e.preventDefault(); sendCopilotMessage(); }} 
+                className="flex items-center gap-2 border border-slate-200 bg-slate-50 p-1.5 rounded-xl focus-within:bg-white focus-within:ring-2 focus-within:ring-navy/10 transition-all duration-150"
+              >
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder={copilotLanguage === 'en' ? "Ask copilot to write report..." : "शिकायत दर्ज करने के लिए कहें..."}
+                  className="flex-1 bg-transparent px-2 py-1 text-xs text-slate-800 outline-none font-medium placeholder-slate-400"
+                />
+
+                <button
+                  type="button"
+                  onClick={toggleListeningChat}
+                  className={`p-2 rounded-lg transition-all duration-150 cursor-pointer ${
+                    isListeningChat 
+                      ? 'bg-red-500 text-white animate-pulse shadow' 
+                      : 'text-slate-400 hover:text-navy hover:bg-slate-200'
+                  }`}
+                  title={isListeningChat ? "Stop Dictating" : "Dictate Message"}
+                >
+                  <Mic className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim() || chatLoading}
+                  className="p-2 bg-navy text-white rounded-lg hover:bg-navy-hover transition-colors shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </form>
+            </div>
+          )}
 
           <div className="bg-slate-950 text-slate-300 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-md">
             <h4 className="text-sm font-bold text-white flex items-center gap-1.5 uppercase tracking-wider">

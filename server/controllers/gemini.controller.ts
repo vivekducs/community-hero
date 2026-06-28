@@ -31,4 +31,52 @@ export class GeminiController {
       return res.status(500).json({ error: err.message });
     }
   }
+
+  static async copilotChat(req: Request, res: Response) {
+    try {
+      const { message, history } = req.body;
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+      const result = await GeminiService.copilotChat(message, history || []);
+      return res.json(result);
+    } catch (err: any) {
+      console.error("Gemini copilotChat failure in GeminiController:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  static async voiceReport(req: Request, res: Response) {
+    try {
+      const { transcript } = req.body;
+      if (!transcript) {
+        return res.status(400).json({ error: 'Transcript is required' });
+      }
+      const result = await GeminiService.voiceReport(transcript);
+      return res.json(result);
+    } catch (err: any) {
+      console.error("Gemini voiceReport failure in GeminiController:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  static async analyzeFull(req: Request, res: Response) {
+    try {
+      const { title, description, image, latitude, longitude } = req.body;
+      if (!title || !description) {
+        return res.status(400).json({ error: 'Title and description are required' });
+      }
+      const result = await GeminiService.analyzeFullReport(
+        title,
+        description,
+        image,
+        latitude,
+        longitude
+      );
+      return res.json(result);
+    } catch (err: any) {
+      console.error("Gemini analyzeFull failure in GeminiController:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
 }
