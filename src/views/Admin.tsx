@@ -32,13 +32,15 @@ import {
   RefreshCw,
   AlertCircle,
   X,
-  Brain
+  Brain,
+  Activity
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { apiFetch } from '../api';
 import { toast } from 'react-hot-toast';
 import PredictiveGovernanceHub from '../components/PredictiveGovernanceHub';
+import SystemMonitoringDashboard from '../components/SystemMonitoringDashboard';
 
 interface StaffMember {
   id: string;
@@ -56,7 +58,7 @@ export default function Admin() {
   const { user } = useAuth();
   const { issues, setIssues } = useIssueStore();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'queue' | 'staff' | 'analytics' | 'twin'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'staff' | 'analytics' | 'twin' | 'monitoring'>('queue');
 
   // --- Phase 4 Operations States ---
   const [copilotData, setCopilotData] = useState<any>(null);
@@ -688,6 +690,15 @@ export default function Admin() {
           <Brain className="w-4 h-4" />
           Digital Twin & Predictive Hub
         </button>
+        <button
+          onClick={() => setActiveTab('monitoring')}
+          className={`px-6 py-3.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors flex items-center gap-2 cursor-pointer ${
+            activeTab === 'monitoring' ? 'border-navy text-navy font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Activity className="w-4 h-4" />
+          Observability & Health
+        </button>
       </div>
 
       {/* 4. Active Tab content render */}
@@ -1170,6 +1181,17 @@ export default function Admin() {
             exit={{ opacity: 0, y: -10 }}
           >
             <PredictiveGovernanceHub />
+          </motion.div>
+        )}
+
+        {activeTab === 'monitoring' && (
+          <motion.div
+            key="monitoring-pane"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <SystemMonitoringDashboard />
           </motion.div>
         )}
       </AnimatePresence>

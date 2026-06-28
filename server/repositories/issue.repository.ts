@@ -58,7 +58,22 @@ export interface Comment {
 }
 
 export class IssueRepository {
+  private static cacheIssues: Issue[] | null = null;
+  private static cacheExpiry: number = 0;
+  private static readonly CACHE_TTL_MS = 15000; // 15 seconds cache
+
+  private static invalidateCache() {
+    this.cacheIssues = null;
+    this.cacheExpiry = 0;
+  }
+
   static async getById(issueId: string): Promise<Issue | null> {
+    // Check if item is in cached list first
+    if (this.cacheIssues && Date.now() < this.cacheExpiry) {
+      const cachedItem = this.cacheIssues.find(i => i.issue_id === issueId);
+      if (cachedItem) return cachedItem;
+    }
+
     const docRef = doc(db, 'issues', issueId);
     const snap = await getDoc(docRef);
     if (!snap.exists()) return null;
@@ -67,14 +82,21 @@ export class IssueRepository {
 
   static async create(issue: Issue): Promise<void> {
     await setDoc(doc(db, 'issues', issue.issue_id), issue);
+    this.invalidateCache();
   }
 
   static async update(issueId: string, fields: Partial<Issue>): Promise<void> {
     const docRef = doc(db, 'issues', issueId);
     await updateDoc(docRef, fields);
+    this.invalidateCache();
   }
 
   static async getAll(): Promise<Issue[]> {
+    const now = Date.now();
+    if (this.cacheIssues && now < this.cacheExpiry) {
+      return [...this.cacheIssues];
+    }
+
     const colRef = collection(db, 'issues');
     const q = query(colRef);
     const snap = await getDocs(q);
@@ -82,7 +104,10 @@ export class IssueRepository {
     snap.forEach((d) => {
       issues.push(d.data() as Issue);
     });
-    return issues;
+
+    this.cacheIssues = issues;
+    this.cacheExpiry = now + this.CACHE_TTL_MS;
+    return [...issues];
   }
 
   static async getAutoDiscardedByReporterOrNearLocation(
@@ -113,6 +138,7 @@ export class IssueRepository {
     await updateDoc(issueRef, {
       comments_count: increment(1)
     });
+    this.invalidateCache();
   }
 
   static async getComments(issueId: string): Promise<Comment[]> {
@@ -134,6 +160,7 @@ export class IssueRepository {
       upvotes: increment(1)
     });
     const snap = await getDoc(docRef);
+    this.invalidateCache();
     return snap.data()?.upvotes || 0;
   }
 }

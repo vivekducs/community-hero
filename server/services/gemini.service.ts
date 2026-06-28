@@ -14,6 +14,9 @@ export interface GeminiInsightsResult {
 }
 
 export class GeminiService {
+  private static apiCache = new Map<string, { data: any, timestamp: number }>();
+  private static readonly CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
   private static getAI(): GoogleGenAI | null {
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey && geminiKey !== 'MY_GEMINI_API_KEY') {
@@ -34,8 +37,15 @@ export class GeminiService {
     description: string,
     image?: string
   ): Promise<GeminiInsightsResult> {
-    const ai = this.getAI();
     const hasImage = !!image;
+    const cacheKey = `insights:${title}:${description}:${hasImage}`;
+    const cached = this.apiCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < this.CACHE_TTL) {
+      console.log(`[Gemini Cache Hit] getInsights for "${title}"`);
+      return cached.data;
+    }
+
+    const ai = this.getAI();
 
     if (ai) {
       try {
@@ -105,7 +115,9 @@ export class GeminiService {
         const endIdx = textResponse.lastIndexOf('}');
         if (startIdx !== -1 && endIdx !== -1) {
           const cleanJsonStr = textResponse.substring(startIdx, endIdx + 1);
-          return JSON.parse(cleanJsonStr) as GeminiInsightsResult;
+          const parsed = JSON.parse(cleanJsonStr) as GeminiInsightsResult;
+          this.apiCache.set(cacheKey, { data: parsed, timestamp: Date.now() });
+          return parsed;
         }
       } catch (err) {
         console.error('Error invoking Gemini SDK inside GeminiService:', err);
@@ -113,7 +125,9 @@ export class GeminiService {
     }
 
     // High-quality deterministic fallback
-    return this.getDeterministicFallback(title, description);
+    const fallbackResult = this.getDeterministicFallback(title, description);
+    this.apiCache.set(cacheKey, { data: fallbackResult, timestamp: Date.now() });
+    return fallbackResult;
   }
 
   static async analyzeImage(imageUrl: string): Promise<GeminiInsightsResult> {
@@ -413,8 +427,15 @@ export class GeminiService {
     latitude?: string,
     longitude?: string
   ): Promise<any> {
-    const ai = this.getAI();
     const hasImage = !!image;
+    const cacheKey = `full:${title}:${description}:${hasImage}:${latitude || ''}:${longitude || ''}`;
+    const cached = this.apiCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < this.CACHE_TTL) {
+      console.log(`[Gemini Cache Hit] analyzeFullReport for "${title}"`);
+      return cached.data;
+    }
+
+    const ai = this.getAI();
 
     if (ai) {
       try {
@@ -527,7 +548,9 @@ export class GeminiService {
         const endIdx = textResponse.lastIndexOf('}');
         if (startIdx !== -1 && endIdx !== -1) {
           const cleanJsonStr = textResponse.substring(startIdx, endIdx + 1);
-          return JSON.parse(cleanJsonStr);
+          const parsed = JSON.parse(cleanJsonStr);
+          this.apiCache.set(cacheKey, { data: parsed, timestamp: Date.now() });
+          return parsed;
         }
       } catch (err) {
         console.error("Gemini full report analysis failed, using fallback:", err);
