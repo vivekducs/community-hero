@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
-import { useIssueStore } from '../store';
+import { useIssues } from '../hooks/useIssues';
 import { Issue } from '../types';
 import { toast } from 'react-hot-toast';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -37,30 +37,16 @@ import {
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { issues, setIssues } = useIssueStore();
+  const { issues } = useIssues();
 
   const [totalIssues, setTotalIssues] = useState(1482);
   const [resolvedIssues, setResolvedIssues] = useState(934);
   const [satisfactionRate, setSatisfactionRate] = useState(95.2);
 
-  // Sync with Firestore issues dynamically to provide live, factual statistics
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'issues'), (snapshot) => {
-      const list: Issue[] = [];
-      snapshot.forEach((doc) => {
-        list.push({ issue_id: doc.id, ...doc.data() } as Issue);
-      });
-      setIssues(list);
-    }, (err) => {
-      console.error("Failed to sync issues on home screen:", err);
-    });
-    return () => unsub();
-  }, [setIssues]);
-
   useEffect(() => {
     if (issues && issues.length > 0) {
       setTotalIssues(1482 + issues.length);
-      const resolvedCount = issues.filter(i => i.status === 'resolved').length;
+      const resolvedCount = issues.filter(i => (i.status || '').toLowerCase() === 'resolved').length;
       setResolvedIssues(934 + resolvedCount);
     }
   }, [issues]);

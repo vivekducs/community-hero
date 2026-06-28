@@ -32,7 +32,7 @@ export interface Issue {
   subcategory: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   confidence: number;
-  status: 'reported' | 'verifying' | 'verified' | 'investigating' | 'resolving' | 'resolved' | 'dismissed';
+  status: string;
   department: string;
   assigned_to_person?: string;
   assigned_at?: string;
