@@ -514,7 +514,7 @@ export default function Layout({ children }: LayoutProps) {
                 <Link to="/profile" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
                   <div className="hidden sm:block text-right">
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-none">{user.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{user.is_authority ? 'City Authority' : 'Citizen Sentinel'}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{user.is_authority ? 'City Authority' : 'Citizen'}</p>
                   </div>
                   <div className="w-9 h-9 rounded-full ring-2 ring-slate-200 dark:ring-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold flex items-center justify-center text-sm transition-all">
                     {user.name.charAt(0).toUpperCase()}
@@ -603,7 +603,7 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${user.is_authority ? 'bg-red-500' : 'bg-accent-green'}`}></div>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {user.is_authority ? 'Official Responder' : 'Verified Sentinel'}
+                    {user.is_authority ? 'Official Responder' : 'Verified'}
                   </p>
                 </div>
               </div>
