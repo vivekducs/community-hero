@@ -7,7 +7,7 @@ import { motion } from 'motion/react';
 import { getFriendlyErrorMessage } from '../utils/errors';
 
 export default function Login() {
-  const { login, loginWithGoogle, error: authError } = useAuth();
+  const { user, loading, login, loginWithGoogle, error: authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<'citizen' | 'authority'>('citizen');
@@ -23,6 +23,14 @@ export default function Login() {
 
   // Determine redirect path
   const from = location.state?.from?.pathname || '/';
+  const targetPath = (from === '/login' || from === '/signup') ? '/' : from;
+
+  // Automatically redirect if user is already authenticated or becomes authenticated (e.g. from redirect)
+  useEffect(() => {
+    if (user && !loading) {
+      navigate(targetPath, { replace: true });
+    }
+  }, [user, loading, navigate, targetPath]);
 
   useEffect(() => {
     if (authError) {
@@ -35,7 +43,7 @@ export default function Login() {
     setServerError(null);
     try {
       await login(data.email, data.password);
-      navigate(from, { replace: true });
+      navigate(targetPath, { replace: true });
     } catch (err: any) {
       console.error(err);
       setServerError(getFriendlyErrorMessage(err));

@@ -5,6 +5,7 @@ import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
+import axios from 'axios';
 
 import apiRouter from './server/routes/index';
 import { requestLogger } from './server/middleware/logger.middleware';
@@ -49,6 +50,51 @@ async function bootstrap() {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
   app.use('/uploads', express.static(uploadsDir));
+
+  // Firebase Auth custom domain proxy to prevent third-party cookie/storage partitioning issues on custom domains/Cloud Run
+  app.all('/__/auth/*', async (req, res) => {
+    const targetUrl = `https://tranquil-atom-8gbcx.firebaseapp.com${req.originalUrl}`;
+    try {
+      const headers: any = {};
+      Object.entries(req.headers).forEach(([key, value]) => {
+        if (key.toLowerCase() !== 'host' && key.toLowerCase() !== 'content-length') {
+          headers[key] = value;
+        }
+      });
+      headers['host'] = 'tranquil-atom-8gbcx.firebaseapp.com';
+
+      let data: any = req.body;
+      if (req.method !== 'GET' && req.body && typeof req.body === 'object') {
+        const contentType = req.headers['content-type'] || '';
+        if (contentType.includes('application/x-www-form-urlencoded')) {
+          data = new URLSearchParams(req.body).toString();
+        } else if (contentType.includes('application/json')) {
+          data = JSON.stringify(req.body);
+        }
+      }
+
+      const response = await axios({
+        method: req.method,
+        url: targetUrl,
+        headers,
+        data,
+        responseType: 'stream',
+        validateStatus: () => true,
+      });
+
+      Object.entries(response.headers).forEach(([key, value]) => {
+        if (value !== undefined) {
+          res.setHeader(key, value);
+        }
+      });
+
+      res.status(response.status);
+      response.data.pipe(res);
+    } catch (error: any) {
+      console.error('Error proxying Firebase Auth request:', error);
+      res.status(500).send('Authentication proxy error');
+    }
+  });
 
   // 1. Centralized logging middleware
   app.use(requestLogger);
