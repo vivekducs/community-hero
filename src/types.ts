@@ -14,7 +14,9 @@ export interface UserProfile {
   total_issues_reported: number;
   badges_earned: string[];
   is_authority?: boolean;
+  is_superuser?: boolean;
   department_id?: string;
+  department?: string;
   total_points?: number;
   community_hero_points?: number;
   tier?: string;

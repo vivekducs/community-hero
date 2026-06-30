@@ -290,7 +290,9 @@ export default function Admin() {
 
   // --- KPI card calculations ---
   const myDepartment = user.department_id || 'Department of Transportation';
-  const assignedIssues = issues.filter(i => i.department === myDepartment);
+  const assignedIssues = user.is_superuser 
+    ? issues 
+    : issues.filter(i => i.department === myDepartment);
   
   const totalAssigned = assignedIssues.length;
   const inProgressCount = assignedIssues.filter(i => ['investigating', 'resolving', 'In Progress', 'assigned', 'Assigned'].includes(i.status)).length;

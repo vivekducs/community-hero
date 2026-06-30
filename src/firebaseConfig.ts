@@ -7,7 +7,7 @@ import { getMessaging } from 'firebase/messaging';
 const firebaseConfig = {
   apiKey: (import.meta as any).env.VITE_REACT_APP_FIREBASE_API_KEY || "AIzaSyC8P6t5U8hsTK6V6LKUxKb1cNwAhqWd_KM",
   projectId: "tranquil-atom-8gbcx",
-  authDomain: typeof window !== 'undefined' ? window.location.host : "tranquil-atom-8gbcx.firebaseapp.com",
+  authDomain: "tranquil-atom-8gbcx.firebaseapp.com",
   storageBucket: "tranquil-atom-8gbcx.firebasestorage.app",
   messagingSenderId: (import.meta as any).env.VITE_REACT_APP_MESSAGING_SENDER_ID || "450881698464",
   appId: (import.meta as any).env.VITE_REACT_APP_APP_ID || "1:450881698464:web:12a3bb15bb920e7fc167c5"

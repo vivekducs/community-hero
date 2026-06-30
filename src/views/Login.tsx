@@ -7,14 +7,15 @@ import { motion } from 'motion/react';
 import { getFriendlyErrorMessage } from '../utils/errors';
 
 export default function Login() {
-  const { user, loading, login, loginWithGoogle, error: authError } = useAuth();
+  const { user, loading, login, loginWithGoogle, loginAsGuest, error: authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<'citizen' | 'authority'>('citizen');
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm({
     defaultValues: {
       email: '',
       password: ''
@@ -147,10 +148,23 @@ export default function Login() {
         )}
 
         {activeTab === 'citizen' ? (
-          /* Citizen View (Google Only) */
-          <div className="space-y-6 py-2" id="citizen-access-panel">
+          /* Citizen View */
+          <div className="space-y-5 py-2" id="citizen-access-panel">
+            {/* Warning when inside a constrained iframe preview */}
+            {isInIframe && (
+              <div className="p-4 bg-amber-50/85 border border-amber-200 text-amber-950 text-xs rounded-xl space-y-2" id="iframe-auth-warning">
+                <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-amber-800">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  Preview Sandbox Detected
+                </div>
+                <p className="leading-relaxed">
+                  Browser privacy security policies inside this preview frame can block Google popup authorization. If Google Sign-In loops, click the <strong>"Open in New Tab"</strong> icon in the top right, or use the 1-click sandbox access below.
+                </p>
+              </div>
+            )}
+
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center space-y-2">
-              <Sparkles className="w-5 h-5 text-saffron mx-auto" />
+              <Sparkles className="w-5 h-5 text-amber-500 mx-auto" />
               <h3 className="text-sm font-semibold text-slate-800">No Account Setup Required</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
                 Citizens can access the map, report public safety issues, check reputation points, and participate in peer-verification instantly using Google Sign-In.
@@ -161,11 +175,16 @@ export default function Login() {
               type="button"
               onClick={async () => {
                 try {
+                  console.log("🚀 [Auth Debug] Google Sign-In button clicked.");
                   setSubmitting(true);
                   setServerError(null);
                   await loginWithGoogle();
-                  navigate(from, { replace: true });
+                  console.log("🚀 [Auth Debug] loginWithGoogle resolved successfully, starting navigation.");
+                  console.log(`🚀 [Auth Debug] Navigation started: Redirecting to target path "${targetPath}"`);
+                  navigate(targetPath, { replace: true });
+                  console.log("🚀 [Auth Debug] Navigation completed successfully.");
                 } catch (err: any) {
+                  console.error("❌ [Auth Debug] Google Sign-In button flow encountered an error:", err);
                   setServerError(err.message || 'Failed to sign in with Google.');
                   setSubmitting(false);
                 }
@@ -188,6 +207,60 @@ export default function Login() {
                 </>
               )}
             </button>
+
+            {/* Separator */}
+            <div className="relative flex py-1 items-center text-slate-300">
+              <div className="flex-grow border-t border-slate-200"></div>
+              <span className="flex-shrink mx-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Or Sandbox Access</span>
+              <div className="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            {/* Robust Guest/Sandbox Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  setSubmitting(true);
+                  setServerError(null);
+                  await loginAsGuest("Sentinel Citizen");
+                  navigate(targetPath, { replace: true });
+                } catch (err: any) {
+                  setServerError(err.message || 'Failed to enter sandbox mode.');
+                  setSubmitting(false);
+                }
+              }}
+              disabled={submitting}
+              className="w-full h-12 bg-[#003366] hover:bg-[#002244] text-white font-semibold rounded-xl flex items-center justify-center gap-2.5 transition-all duration-150 shadow-md cursor-pointer"
+              id="btn-sandbox-citizen"
+            >
+              {submitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="w-4.5 h-4.5 animate-pulse" />
+                  Continue as Sandbox Citizen (1-Click)
+                </>
+              )}
+            </button>
+
+            <div className="text-center pt-2 text-xs text-slate-500 space-y-2">
+              <p>
+                Want a dedicated secure account?{' '}
+                <Link to="/signup" className="font-semibold text-navy hover:underline" id="link-signup">
+                  Register with Email &rarr;
+                </Link>
+              </p>
+              <p>
+                Already have an email account?{' '}
+                <button 
+                  type="button"
+                  onClick={() => setActiveTab('authority')} 
+                  className="font-semibold text-navy hover:underline cursor-pointer bg-transparent border-none p-0 inline"
+                >
+                  Sign in here
+                </button>
+              </p>
+            </div>
           </div>
         ) : (
           /* Authority View (Email/Password) */

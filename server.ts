@@ -24,7 +24,8 @@ async function bootstrap() {
   app.use(helmet({
     contentSecurityPolicy: false, // Turn off CSP so that local iframe/Vite HMR/Google fonts load cleanly in AI Studio
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
   }));
   app.use(cors({
     origin: '*',
@@ -54,6 +55,7 @@ async function bootstrap() {
   // Firebase Auth custom domain proxy to prevent third-party cookie/storage partitioning issues on custom domains/Cloud Run
   app.all('/__/auth/*', async (req, res) => {
     const targetUrl = `https://tranquil-atom-8gbcx.firebaseapp.com${req.originalUrl}`;
+    console.log(`📡 [Proxy Debug] Proxying ${req.method} request to Firebase Auth: ${req.originalUrl}`);
     try {
       const headers: any = {};
       Object.entries(req.headers).forEach(([key, value]) => {
@@ -82,16 +84,21 @@ async function bootstrap() {
         validateStatus: () => true,
       });
 
+      console.log(`📡 [Proxy Debug] Firebase Auth responded with status ${response.status} for ${req.originalUrl}`);
+
       Object.entries(response.headers).forEach(([key, value]) => {
         if (value !== undefined) {
           res.setHeader(key, value);
         }
       });
 
+      // Explicitly enforce same-origin-allow-popups to ensure popup communication is never blocked
+      res.setHeader('cross-origin-opener-policy', 'same-origin-allow-popups');
+
       res.status(response.status);
       response.data.pipe(res);
     } catch (error: any) {
-      console.error('Error proxying Firebase Auth request:', error);
+      console.error('❌ [Proxy Debug] Error proxying Firebase Auth request:', error);
       res.status(500).send('Authentication proxy error');
     }
   });
